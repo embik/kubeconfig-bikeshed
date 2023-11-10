@@ -1,2 +1,3 @@
-# kubeconfig-bike-shedding
-kbs - kubeconfig-bike-shedding - is an opinionated tool to manage your kubeconfigs
+# kubeconfig-bike-shed
+
+`kbs` - kubeconfig-bike-shed - is an opinionated tool to manage your kubeconfigs for accessing Kubernetes APIs.
