@@ -1,8 +1,10 @@
-use clap::{arg, Arg, Command};
+use clap::{arg, Command};
 use std::error::Error;
+use std::ffi::OsString;
 use std::path::PathBuf;
 
-mod config;
+mod error;
+mod kubeconfig;
 
 pub const NAME: &str = "import";
 
@@ -16,24 +18,33 @@ pub fn command() -> Command {
                 .value_parser(clap::value_parser!(std::path::PathBuf)),
         )
         .arg(
-            Arg::new("name")
+            arg!(<NAME> "Override context name")
+                .id("name")
                 .long("name")
                 .short('n')
+                .required(false)
                 .num_args(1)
-                .help("Override context name"),
+                .value_parser(clap::value_parser!(OsString)),
         )
         .arg_required_else_help(true)
 }
 
-pub fn execute(kubeconfig: Option<&PathBuf>) -> Result<(), Box<dyn Error>> {
-    let kubeconfig_path = match kubeconfig {
-        Some(path_buf) => path_buf,
-        None => panic!("cannot construct path"),
-    };
-    let path_os_string = kubeconfig_path.clone().into_os_string();
-    let kubeconfig = config::get_kubeconfig(&path_os_string)?;
+pub fn execute(
+    kubeconfig: Option<&PathBuf>,
+    name: Option<&OsString>,
+) -> Result<(), Box<dyn Error>> {
+    let buf = kubeconfig.ok_or("cannot construct path")?;
+    let path = buf.clone().into_os_string();
+    let kubeconfig = kubeconfig::get(&path)?;
 
-    println!("{:?}", kubeconfig);
+    let name: OsString = match name {
+        Some(str) => str.clone(),
+        None => OsString::new(),
+    };
+
+    let kubeconfig_str = serde_yaml::to_string(&kubeconfig)?;
+    println!("{}", name.to_str().unwrap_or_default());
+    println!("{kubeconfig_str}");
 
     Ok(())
 }

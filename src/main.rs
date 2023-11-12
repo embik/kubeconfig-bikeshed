@@ -4,6 +4,7 @@ use cmd::import;
 use fern::colors::{Color, ColoredLevelConfig};
 use log;
 use std::error::Error;
+use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::exit;
 use std::time::SystemTime;
@@ -16,6 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             // run the 'import' subcommand.
             handle(import::execute(
                 sub_matches.get_one::<PathBuf>("kubeconfig"),
+                sub_matches.get_one::<OsString>("name"),
             ))
         }
         _ => {
