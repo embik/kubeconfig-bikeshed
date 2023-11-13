@@ -1,13 +1,12 @@
 mod cmd;
 
 use cmd::import;
-use fern::colors::{Color, ColoredLevelConfig};
-use log;
+use env_logger::Builder;
+use log::{self, SetLoggerError};
 use std::error::Error;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::exit;
-use std::time::SystemTime;
 
 fn main() -> Result<(), Box<dyn Error>> {
     setup_logger()?;
@@ -38,24 +37,9 @@ fn handle(res: Result<(), Box<dyn std::error::Error>>) -> Result<(), Box<dyn Err
     }
 }
 
-fn setup_logger() -> Result<(), fern::InitError> {
-    let colors = ColoredLevelConfig::new()
-        .info(Color::Green)
-        .warn(Color::Yellow)
-        .error(Color::Red);
-
-    fern::Dispatch::new()
-        .format(move |out, message, record| {
-            out.finish(format_args!(
-                "[{} {}] {}",
-                colors.color(record.level()),
-                humantime::format_rfc3339_seconds(SystemTime::now()),
-                message,
-            ))
-        })
-        .level(log::LevelFilter::Info)
-        .chain(std::io::stdout())
-        .apply()?;
-
-    Ok(())
+fn setup_logger() -> Result<(), SetLoggerError> {
+    Builder::new()
+        .filter_level(log::LevelFilter::Info)
+        .format_target(false)
+        .try_init()
 }

@@ -1,3 +1,3 @@
 # kubeconfig-bike-shed
 
-`kbs` - kubeconfig-bike-shed - is an opinionated tool to manage your kubeconfigs for accessing Kubernetes APIs.
+kubeconfig-bike-shed -- `kbs` -- is an opinionated tool to manage your kubeconfigs for accessing Kubernetes APIs.
