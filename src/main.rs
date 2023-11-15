@@ -9,9 +9,12 @@ use std::path::PathBuf;
 use std::process::exit;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    setup_logger()?;
+    let matches = cmd::cli().get_matches();
+    let verbose = matches.get_flag("verbose");
 
-    match cmd::cli().get_matches().subcommand() {
+    setup_logger(verbose)?;
+
+    match matches.subcommand() {
         Some((import::NAME, sub_matches)) => {
             // run the 'import' subcommand.
             handle(import::execute(
@@ -37,9 +40,14 @@ fn handle(res: Result<(), Box<dyn std::error::Error>>) -> Result<(), Box<dyn Err
     }
 }
 
-fn setup_logger() -> Result<(), SetLoggerError> {
+fn setup_logger(verbose: bool) -> Result<(), SetLoggerError> {
+    let filter_level = match verbose {
+        true => log::LevelFilter::Debug,
+        false => log::LevelFilter::Info,
+    };
+
     Builder::new()
-        .filter_level(log::LevelFilter::Info)
+        .filter_level(filter_level)
         .format_target(false)
         .try_init()
 }
