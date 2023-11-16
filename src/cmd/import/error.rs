@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(Debug)]
 pub enum ImportError {
     InvalidConfiguration,
+    FileExists(String),
     InvalidCluster(String),
 }
 
@@ -13,6 +14,7 @@ impl fmt::Display for ImportError {
         match self {
             ImportError::InvalidConfiguration => write!(f, "invalid configuration provided"),
             ImportError::InvalidCluster(s) => write!(f, "{s}"),
+            ImportError::FileExists(s) => write!(f, "file {s} aready exists"),
         }
     }
 }

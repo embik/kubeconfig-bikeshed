@@ -1,31 +1,36 @@
 mod cmd;
+mod config;
 
-use cmd::import;
+use cmd::{import, switch};
 use env_logger::Builder;
 use log::{self, SetLoggerError};
 use std::error::Error;
-use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::exit;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = cmd::cli().get_matches();
-    let verbose = matches.get_flag("verbose");
 
-    setup_logger(verbose)?;
+    setup_logger(matches.get_flag("verbose"))?;
+
+    let config_path = config::get_config_path()?;
 
     match matches.subcommand() {
         Some((import::NAME, sub_matches)) => {
             // run the 'import' subcommand.
             handle(import::execute(
+                &config_path,
                 sub_matches.get_one::<PathBuf>("kubeconfig"),
-                sub_matches.get_one::<OsString>("name"),
+                sub_matches.get_one::<String>("name"),
             ))
         }
-        _ => {
+        Some((switch::NAME, _)) | None => {
             // no subcommand was passed, run fuzzy selection to change KUBECONFIG.
-            log::info!("no command");
-            Ok(())
+            handle(switch::execute(&config_path))
+        }
+        _ => {
+            log::error!("unknown command");
+            exit(1);
         }
     }
 }

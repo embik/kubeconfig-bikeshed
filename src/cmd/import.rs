@@ -2,10 +2,11 @@ use clap::{arg, Command};
 use url::Url;
 
 use std::error::Error;
-use std::ffi::OsString;
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+use crate::cmd::import::error::ImportError;
 
 mod error;
 mod kubeconfig;
@@ -28,14 +29,15 @@ pub fn command() -> Command {
                 .short('n')
                 .required(false)
                 .num_args(1)
-                .value_parser(clap::value_parser!(OsString)),
+                .value_parser(clap::value_parser!(String)),
         )
         .arg_required_else_help(true)
 }
 
 pub fn execute(
+    config_path: &PathBuf,
     kubeconfig: Option<&PathBuf>,
-    name: Option<&OsString>,
+    name: Option<&String>,
 ) -> Result<(), Box<dyn Error>> {
     let buf = kubeconfig.ok_or("no kubeconfig path found")?;
     let path = buf.clone().into_os_string();
@@ -43,7 +45,7 @@ pub fn execute(
 
     // read the name from the command line flag; if it's not set,
     // extract the hostname and use that as name.
-    let name: OsString = match name {
+    let name: String = match name {
         Some(str) => str.clone(),
         None => {
             log::debug!("no name passed via flag, reading it from kubeconfig server URL");
@@ -52,31 +54,29 @@ pub fn execute(
             let host = url
                 .host_str()
                 .ok_or("failed to parse host from server URL")?;
-            OsString::from(host)
+            host.to_string()
         }
     };
 
     log::debug!("using {:?} as name for kubeconfig file and context", name);
 
-    let config_path = get_config_path()?;
-    let kubeconfig_path = config_path.join(name);
+    let kubeconfig_path = config_path.join(format!("{}.kubeconfig", name));
 
-    let kubeconfig_path_str = kubeconfig_path
-        .to_str()
-        .ok_or("failed to get string representation of path")?;
-    log::debug!("writing kubeconfig to {kubeconfig_path_str}");
+    log::debug!("importing kubeconfig to {}", kubeconfig_path.display());
 
-    let file = File::create(kubeconfig_path)?;
+    // TODO: prompt the user for confirmation to override instead of
+    // throwing an error.
+    if kubeconfig_path.exists() {
+        return Err(Box::new(ImportError::FileExists(
+            kubeconfig_path.display().to_string(),
+        )));
+    }
+
+    let file = File::create(&kubeconfig_path)?;
     let file = BufWriter::new(file);
     serde_yaml::to_writer(file, &kubeconfig)?;
 
-    Ok(())
-}
+    log::info!("imported kubeconfig to {}", kubeconfig_path.display());
 
-fn get_config_path() -> Result<PathBuf, Box<dyn Error>> {
-    let home_path = home::home_dir().ok_or("could not find home directory")?;
-    Ok(Path::new(&home_path)
-        .join(".config")
-        .join("kbs")
-        .to_path_buf())
+    Ok(())
 }
