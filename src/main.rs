@@ -1,5 +1,7 @@
 mod cmd;
 mod config;
+mod errors;
+mod kubeconfig;
 
 use cmd::{import, switch};
 use env_logger::Builder;

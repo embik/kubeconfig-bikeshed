@@ -5,7 +5,7 @@ use std::error::Error;
 use std::ffi::OsString;
 use std::fs::File;
 
-use super::error::ImportError;
+use crate::errors::ImportError;
 
 pub fn get(file: &OsString) -> Result<Kubeconfig, Box<dyn Error>> {
     let kubeconfig_file = File::open(file)?;

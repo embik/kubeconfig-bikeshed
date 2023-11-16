@@ -6,10 +6,8 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::PathBuf;
 
-use crate::cmd::import::error::ImportError;
-
-mod error;
-mod kubeconfig;
+use crate::errors::ImportError;
+use crate::kubeconfig;
 
 pub const NAME: &str = "import";
 
