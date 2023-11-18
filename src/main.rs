@@ -3,7 +3,7 @@ mod config;
 mod errors;
 mod kubeconfig;
 
-use cmd::{import, switch};
+use cmd::{import, list, path, shell_magic};
 use env_logger::Builder;
 use log::{self, SetLoggerError};
 use std::error::Error;
@@ -26,10 +26,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 sub_matches.get_one::<String>("name"),
             ))
         }
-        Some((switch::NAME, _)) | None => {
-            // no subcommand was passed, run fuzzy selection to change KUBECONFIG.
-            handle(switch::execute(&config_path))
-        }
+        Some((path::NAME, _)) => handle(path::execute(&config_path)),
+        Some((shell_magic::NAME, sub_matches)) => handle(shell_magic::execute(sub_matches)),
+        Some((list::NAME, _)) | None => handle(list::execute(&config_path)),
         _ => {
             log::error!("unknown command");
             exit(1);
