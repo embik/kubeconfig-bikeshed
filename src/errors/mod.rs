@@ -1,21 +1,6 @@
 use std::fmt;
 
 #[derive(Debug)]
-pub enum CmdError {
-    CommandNotFound,
-}
-
-impl std::error::Error for CmdError {}
-
-impl fmt::Display for CmdError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            CmdError::CommandNotFound => write!(f, "command not found"),
-        }
-    }
-}
-
-#[derive(Debug)]
 pub enum ImportError {
     InvalidConfiguration,
     FileExists(String),

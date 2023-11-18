@@ -3,7 +3,7 @@ mod config;
 mod errors;
 mod kubeconfig;
 
-use cmd::{import, list, path, shell_magic};
+use cmd::{import, list, path, shell};
 use env_logger::Builder;
 use log::{self, SetLoggerError};
 use std::error::Error;
@@ -18,6 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config_path = config::get_config_path()?;
 
     match matches.subcommand() {
+        Some((list::NAME, _)) | None => handle(list::execute(&config_path)),
         Some((import::NAME, sub_matches)) => {
             // run the 'import' subcommand.
             handle(import::execute(
@@ -27,8 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ))
         }
         Some((path::NAME, _)) => handle(path::execute(&config_path)),
-        Some((shell_magic::NAME, sub_matches)) => handle(shell_magic::execute(sub_matches)),
-        Some((list::NAME, _)) | None => handle(list::execute(&config_path)),
+        Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
         _ => {
             log::error!("unknown command");
             exit(1);

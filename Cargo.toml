@@ -1,5 +1,5 @@
 [package]
-name = "kubeconfig-bike-shed"
+name = "kbs"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,3 +16,4 @@ humantime = "2.1.0"
 env_logger = "0.10"
 url = "2.4.1"
 home = "0.5.5"
+clap_complete = "4.4.4"
