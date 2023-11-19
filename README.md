@@ -13,15 +13,13 @@ The core idea of this tool is that the context name should be meaningful. Not al
 
 ## Installation
 
-`kbs` is currently not available from any repositories. To install, `git`, `rustc` and `cargo` are required. If you have those available, run:
+kubeconfig-bikeshed is available from [crates.io](https://crates.io) and can be installed via `cargo` (if a working Rust toolchain is installed):
 
 ```sh
-git clone git@github.com:embik/kubeconfig-bikeshed.git \
-    && cd kubeconfig-bikeshed \
-    && cargo install --path .
+$ cargo install kubeconfig-bikeshed
 ```
 
-Make sure `$HOME/.cargo/bin` is in your `PATH`.
+This will install the `kbs` binary. Make sure `$HOME/.cargo/bin` is in your `PATH`.
 
 To change between contexts and namespace within the same file, it is recommended to also install [kubectx](https://github.com/ahmetb/kubectx).
 
