@@ -4,9 +4,9 @@ use clap::{Arg, ArgMatches, Command};
 
 pub mod import;
 pub mod list;
-pub mod path;
 pub mod prune;
 pub mod shell;
+pub mod r#use;
 
 pub fn cli() -> Command {
     Command::new("kbs")
@@ -23,7 +23,7 @@ pub fn cli() -> Command {
         .subcommands([
             import::command(),
             list::command(),
-            path::command(),
+            r#use::command(),
             shell::command(),
             // TODO: add subcommand 'fetch' to fetch kubeconfigs from remote systems.
             // TODO: add subcommand 'prune' to clean up kubeconfigs with dead server URLs.
@@ -37,7 +37,7 @@ pub fn execute(
     match matches {
         Some((list::NAME, _)) | None => handle(list::execute(config_path)),
         Some((import::NAME, sub_matches)) => handle(import::execute(config_path, sub_matches)),
-        Some((path::NAME, sub_matches)) => handle(path::execute(config_path, sub_matches)),
+        Some((r#use::NAME, sub_matches)) => handle(r#use::execute(config_path, sub_matches)),
         Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
         _ => {
             log::error!("unknown command");

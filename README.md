@@ -55,7 +55,7 @@ Usage: kbs [OPTIONS] [COMMAND]
 Commands:
   import  Import a kubeconfig into store
   list    List available kubeconfigs
-  path    Print full path to a specific kubeconfig in kbs store
+  use     Use a kubeconfig by name and print shell snippet to source
   shell   Print various shell related scripts
   help    Print this message or the help of the given subcommand(s)
 

@@ -4,12 +4,12 @@ use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 
 use crate::kubeconfig;
 
-pub const NAME: &str = "path";
+pub const NAME: &str = "use";
 
 pub fn command() -> Command {
     Command::new(NAME)
-        .alias("p")
-        .about("Print full path to a specific kubeconfig in kbs store")
+        .alias("u")
+        .about("Use a kubeconfig by name and print shell snippet to source")
         .arg(
             Arg::new("kubeconfig")
                 .action(ArgAction::Set)
@@ -27,7 +27,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn s
 
     match kubeconfig::get(&kube_config_path) {
         Ok(_) => {
-            print!("{}", kube_config_path.display());
+            print!("export KUBECONFIG={}", kube_config_path.display());
             Ok(())
         }
         Err(err) => Err(err),

@@ -4,7 +4,7 @@ function kbs() {
     local _kbs_bin="$(whereis -q kbs)"
     if [ $# -eq 0 ]; then
         # if no parameters are passed, we want to run fzf on available kubeconfigs and set the selected one as active kubeconfig
-        export KUBECONFIG="$(eval ${_kbs_bin} path $(echo "$(eval ${_kbs_bin} ls)" | _inline_fzf))"
+        eval "$(eval ${_kbs_bin} use $(echo "$(eval ${_kbs_bin} ls)" | _inline_fzf))"
     else
         # if parameters are passed, we just call the kbs binary directly
         ${_kbs_bin} $@
