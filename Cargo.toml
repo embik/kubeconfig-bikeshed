@@ -15,7 +15,7 @@ repository = "https://github.com/embik/kubeconfig-bikeshed"
 readme = "README.md"
 keywords = ["kubernetes", "kubeconfig", "kubectl"]
 categories = ["command-line-utilities"]
-license-file = "LICENSE"
+license = "Apache-2.0"
 
 exclude = [
     ".github/",
