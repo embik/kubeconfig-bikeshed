@@ -1,4 +1,4 @@
-use clap::{arg, Command};
+use clap::{arg, ArgMatches, Command};
 use url::Url;
 
 use std::error::Error;
@@ -32,17 +32,15 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
 }
 
-pub fn execute(
-    config_path: &Path,
-    kubeconfig: Option<&PathBuf>,
-    name: Option<&String>,
-) -> Result<(), Box<dyn Error>> {
-    let path = kubeconfig.ok_or("no kubeconfig path found")?;
-    let kubeconfig = kubeconfig::get(path)?;
+pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    let kubeconfig_path = matches
+        .get_one::<PathBuf>("kubeconfig")
+        .ok_or("failed to parse kubeconfig argument")?;
+    let kubeconfig = kubeconfig::get(kubeconfig_path)?;
 
     // read the name from the command line flag; if it's not set,
     // extract the hostname and use that as name.
-    let name: String = match name {
+    let name: String = match matches.get_one::<String>("name") {
         Some(str) => str.clone(),
         None => {
             log::debug!("no name passed via flag, reading it from kubeconfig server URL");

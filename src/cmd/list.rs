@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use clap::Command;
 
@@ -12,7 +12,7 @@ pub fn command() -> Command {
         .arg_required_else_help(false)
 }
 
-pub fn execute(config_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+pub fn execute(config_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     log::debug!("looking for kubeconfigs in {}", config_path.display());
 
     let files = fs::read_dir(config_path)?;

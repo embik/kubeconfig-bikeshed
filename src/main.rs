@@ -3,47 +3,16 @@ mod config;
 mod errors;
 mod kubeconfig;
 
-use cmd::{import, list, path, shell};
 use env_logger::Builder;
 use log::{self, SetLoggerError};
 use std::error::Error;
-use std::path::PathBuf;
-use std::process::exit;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = cmd::cli().get_matches();
-
-    setup_logger(matches.get_flag("verbose"))?;
-
     let config_path = config::get_config_path()?;
 
-    match matches.subcommand() {
-        Some((list::NAME, _)) | None => handle(list::execute(&config_path)),
-        Some((import::NAME, sub_matches)) => {
-            // run the 'import' subcommand.
-            handle(import::execute(
-                &config_path,
-                sub_matches.get_one::<PathBuf>("kubeconfig"),
-                sub_matches.get_one::<String>("name"),
-            ))
-        }
-        Some((path::NAME, sub_matches)) => handle(path::execute(&config_path, sub_matches)),
-        Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
-        _ => {
-            log::error!("unknown command");
-            exit(1);
-        }
-    }
-}
-
-fn handle(res: Result<(), Box<dyn std::error::Error>>) -> Result<(), Box<dyn Error>> {
-    match res {
-        Err(err) => {
-            log::error!("{err}");
-            exit(1);
-        }
-        _ => exit(0),
-    }
+    setup_logger(matches.get_flag("verbose"))?;
+    cmd::execute(&config_path, matches.subcommand())
 }
 
 fn setup_logger(verbose: bool) -> Result<(), SetLoggerError> {
