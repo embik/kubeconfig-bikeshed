@@ -9,7 +9,7 @@ kubeconfig-bikeshed - `kbs` - is an opinionated tool to manage your kubeconfigs 
 1. Write tooling for my own workflows.
 1. Learn Rust.
 
-The core idea of this tool is that the context name should be meaningful after a kubeconfig has been imported. And _meaningful_ for me often meant to rename the context to the DNS name hosting the Kubernetes API. Therefore, `kbs` automatically discovers the server name from a kubeconfig that is being imported, and uses that to identify any conflicts with existing kubeconfigs and to set a meaningful context name.
+The core idea of this tool is that the context name should be meaningful. Not all Kubernetes deployment tools generate "good" context names. And _meaningful_ for me often meant renaming the context to the DNS name hosting the Kubernetes API. Therefore, `kbs` automatically discovers the server name from a kubeconfig that is being imported, and uses that to identify any conflicts with existing kubeconfigs and to set a meaningful context name.
 
 ## Installation
 
