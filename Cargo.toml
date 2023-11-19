@@ -17,6 +17,10 @@ keywords = ["kubernetes", "kubeconfig", "kubectl"]
 categories = ["command-line-utilities"]
 license-file = "LICENSE"
 
+exclude = [
+    ".github/",
+]
+
 [[bin]]
 path = "src/main.rs"
 name = "kbs"
