@@ -1,6 +1,8 @@
-# kubeconfig-bike-shed
+# kubeconfig-bikeshed
 
-kubeconfig-bike-shed - `kbs` - is an opinionated tool to manage your kubeconfigs for accessing many Kubernetes APIs. Instead of managing a single kubeconfig file with many contexts, `kbs` maintains many kubeconfig files that can be switched between.
+There are few topics in software engineering that have been [bikeshedded](https://en.wiktionary.org/wiki/bikeshed) as much as personal workflow tools. The Cloud Native space is not exempted from that. The way of managing your kubeconfigs to use with `kubectl` (and other command line tools) is a highly personal choice.
+
+kubeconfig-bikeshed - `kbs` - is an opinionated tool to manage your kubeconfigs for accessing many Kubernetes APIs. Instead of managing a single kubeconfig file with many contexts, `kbs` maintains many kubeconfig files that can be switched between.
 
 `kbs` is a personal project with two objectives:
 
@@ -14,8 +16,8 @@ The core idea of this tool is that the context name should be meaningful after a
 `kbs` is currently not available from any repositories. To install, `git`, `rustc` and `cargo` are required. If you have those available, run:
 
 ```sh
-git clone git@github.com:embik/kubeconfig-bike-shed.git \
-    && cd kubeconfig-bike-shed \
+git clone git@github.com:embik/kubeconfig-bikeshed.git \
+    && cd kubeconfig-bikeshed \
     && cargo install --path .
 ```
 
