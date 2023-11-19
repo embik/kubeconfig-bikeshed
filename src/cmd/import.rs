@@ -55,23 +55,25 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn E
 
     log::debug!("using {:?} as name for kubeconfig file and context", name);
 
-    let kubeconfig_path = config_path.join(format!("{}.kubeconfig", name));
+    let target_path = config_path.join(format!("{}.kubeconfig", name));
 
-    log::debug!("importing kubeconfig to {}", kubeconfig_path.display());
+    log::debug!("importing kubeconfig to {}", target_path.display());
 
     // TODO: prompt the user for confirmation to override instead of
     // throwing an error.
-    if kubeconfig_path.exists() {
+    if target_path.exists() {
         return Err(Box::new(ImportError::FileExists(
             kubeconfig_path.display().to_string(),
         )));
     }
 
-    let file = File::create(&kubeconfig_path)?;
+    let kubeconfig = kubeconfig::rename_context(&kubeconfig, &name)?;
+
+    let file = File::create(&target_path)?;
     let file = BufWriter::new(file);
     serde_yaml::to_writer(file, &kubeconfig)?;
 
-    log::info!("imported kubeconfig to {}", kubeconfig_path.display());
+    log::info!("imported kubeconfig to {}", target_path.display());
 
     Ok(())
 }

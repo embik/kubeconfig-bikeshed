@@ -46,3 +46,27 @@ pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String, ImportError> {
 
     Ok(server)
 }
+
+pub fn rename_context(
+    kubeconfig: &Kubeconfig,
+    context_name: &str,
+) -> Result<Kubeconfig, Box<dyn Error>> {
+    let mut new_kubeconfig = kubeconfig.clone();
+
+    let current_context = kubeconfig
+        .current_context
+        .as_ref()
+        .ok_or("cannot get current context")?;
+
+    let mut contexts = kubeconfig.contexts.clone();
+    for context in &mut contexts {
+        if context.name.eq(current_context) {
+            context.name = context_name.to_string();
+        }
+    }
+
+    new_kubeconfig.current_context = Some(context_name.to_string());
+    new_kubeconfig.contexts = contexts;
+
+    Ok(new_kubeconfig)
+}
