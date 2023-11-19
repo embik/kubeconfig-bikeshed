@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 sub_matches.get_one::<String>("name"),
             ))
         }
-        Some((path::NAME, _)) => handle(path::execute(&config_path)),
+        Some((path::NAME, sub_matches)) => handle(path::execute(&config_path, sub_matches)),
         Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
         _ => {
             log::error!("unknown command");

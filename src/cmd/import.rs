@@ -37,8 +37,7 @@ pub fn execute(
     kubeconfig: Option<&PathBuf>,
     name: Option<&String>,
 ) -> Result<(), Box<dyn Error>> {
-    let buf = kubeconfig.ok_or("no kubeconfig path found")?;
-    let path = buf.clone().into_os_string();
+    let path = kubeconfig.ok_or("no kubeconfig path found")?;
     let kubeconfig = kubeconfig::get(&path)?;
 
     // read the name from the command line flag; if it's not set,

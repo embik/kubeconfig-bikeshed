@@ -2,12 +2,12 @@ use kube::config::Kubeconfig;
 use serde_yaml;
 
 use std::error::Error;
-use std::ffi::OsString;
 use std::fs::File;
+use std::path::PathBuf;
 
 use crate::errors::ImportError;
 
-pub fn get(file: &OsString) -> Result<Kubeconfig, Box<dyn Error>> {
+pub fn get(file: &PathBuf) -> Result<Kubeconfig, Box<dyn Error>> {
     let kubeconfig_file = File::open(file)?;
 
     let kubeconfig = match serde_yaml::from_reader::<File, Kubeconfig>(kubeconfig_file) {
