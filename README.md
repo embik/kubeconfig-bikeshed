@@ -23,6 +23,8 @@ git clone git@github.com:embik/kubeconfig-bikeshed.git \
 
 Make sure `$HOME/.cargo/bin` is in your `PATH`.
 
+To change between contexts and namespace within the same file, it is recommended to also install [kubectx](https://github.com/ahmetb/kubectx).
+
 ### Autocompletion
 
 `kbs` can generate shell autocompletion for many available shells via the `kbs shell completion` command. Specific instructions might differ by shell. For example, to install the `zsh` autocompletion, add the following snippet to your `.zshrc`:
