@@ -704,23 +704,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kbs"
-version = "0.1.0"
-dependencies = [
- "clap",
- "clap_complete",
- "env_logger",
- "home",
- "humantime",
- "k8s-openapi",
- "kube",
- "log",
- "serde",
- "serde_yaml",
- "url",
-]
-
-[[package]]
 name = "kube"
 version = "0.82.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -795,6 +778,23 @@ dependencies = [
  "quote",
  "serde_json",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "kubeconfig-bikeshed"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "clap_complete",
+ "env_logger",
+ "home",
+ "humantime",
+ "k8s-openapi",
+ "kube",
+ "log",
+ "serde",
+ "serde_yaml",
+ "url",
 ]
 
 [[package]]

@@ -1,7 +1,25 @@
 [package]
-name = "kbs"
+name = "kubeconfig-bikeshed"
 version = "0.1.0"
 edition = "2021"
+
+authors = ["Marvin Beckers <mail@embik.me>"]
+description = """
+kubeconfig-bikeshed (kbs) is an opinionated kubeconfig manager that helps
+keeping the various kubeconfigs on your system at bay by importing them to 
+a central store and normalizing them.
+"""
+documentation = "https://github.com/embik/kubeconfig-bikeshed"
+homepage = "https://github.com/embik/kubeconfig-bikeshed"
+repository = "https://github.com/embik/kubeconfig-bikeshed"
+readme = "README.md"
+keywords = ["kubernetes", "kubeconfig", "kubectl"]
+categories = ["command-line-utilities"]
+license-file = "LICENSE"
+
+[[bin]]
+path = "src/main.rs"
+name = "kbs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
