@@ -8,7 +8,7 @@ pub const NAME: &str = "list";
 pub fn command() -> Command {
     Command::new(NAME)
         .alias("ls")
-        .about("List available kubeconfig")
+        .about("List available kubeconfigs")
         .arg_required_else_help(false)
 }
 
