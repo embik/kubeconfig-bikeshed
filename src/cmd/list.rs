@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::Command;
 
@@ -37,13 +37,10 @@ pub fn execute(config_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> 
     Ok(())
 }
 
-fn is_kubeconfig(file: &PathBuf) -> bool {
+fn is_kubeconfig(file: &Path) -> bool {
     if !file.is_file() {
         return false;
     }
 
-    match file.extension() {
-        Some(extension) if extension == "kubeconfig" => true,
-        _ => false,
-    }
+    matches!(file.extension(), Some(extension) if extension == "kubeconfig")
 }

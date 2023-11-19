@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 
@@ -18,10 +18,7 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
 }
 
-pub fn execute(
-    config_path: &PathBuf,
-    matches: &ArgMatches,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
     let kube_config = matches
         .get_one::<String>("kubeconfig")
         .ok_or("failed to get kubeconfig argument")?;

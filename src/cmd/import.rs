@@ -4,7 +4,7 @@ use url::Url;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::errors::ImportError;
 use crate::kubeconfig;
@@ -33,12 +33,12 @@ pub fn command() -> Command {
 }
 
 pub fn execute(
-    config_path: &PathBuf,
+    config_path: &Path,
     kubeconfig: Option<&PathBuf>,
     name: Option<&String>,
 ) -> Result<(), Box<dyn Error>> {
     let path = kubeconfig.ok_or("no kubeconfig path found")?;
-    let kubeconfig = kubeconfig::get(&path)?;
+    let kubeconfig = kubeconfig::get(path)?;
 
     // read the name from the command line flag; if it's not set,
     // extract the hostname and use that as name.
