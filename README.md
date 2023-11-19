@@ -50,8 +50,8 @@ Usage: kbs [OPTIONS] [COMMAND]
 
 Commands:
   import  Import a kubeconfig into store
-  list    List available kubeconfig
-  path    Print config directory base path
+  list    List available kubeconfigs
+  path    Print full path to a specific kubeconfig in kbs store
   shell   Print various shell related scripts
   help    Print this message or the help of the given subcommand(s)
 
