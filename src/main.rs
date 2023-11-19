@@ -12,6 +12,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config_path = config::get_config_path()?;
 
     setup_logger(matches.get_flag("verbose"))?;
+    log::debug!("using {} as config path", config_path.display());
+
     cmd::execute(&config_path, matches.subcommand())
 }
 
