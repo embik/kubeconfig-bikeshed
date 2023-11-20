@@ -13,7 +13,18 @@ The core idea of this tool is that the context name should be meaningful. Not al
 
 ## Installation
 
-kubeconfig-bikeshed is available from [crates.io](https://crates.io) and can be installed via `cargo` (if a working Rust toolchain is installed):
+### Homebrew
+
+`kbs` is available from my [tap](https://github.com/embik/homebrew-tap):
+
+```sh
+$ brew tap embik/tap
+$ brew install kubeconfig-bikeshed
+```
+
+### Others (via `cargo`)
+
+kubeconfig-bikeshed is also directly available from [crates.io](https://crates.io) and can be installed via `cargo` (if a working Rust toolchain is installed):
 
 ```sh
 $ cargo install kubeconfig-bikeshed
@@ -21,7 +32,9 @@ $ cargo install kubeconfig-bikeshed
 
 This will install the `kbs` binary. Make sure `$HOME/.cargo/bin` is in your `PATH`.
 
-To change between contexts and namespace within the same file, it is recommended to also install [kubectx](https://github.com/ahmetb/kubectx).
+## Setup
+
+After installing `kbs`, a few things can be set up for smoother usage of it. To change between contexts and namespaces, it is recommended to also install [kubectx](https://github.com/ahmetb/kubectx).
 
 ### Autocompletion
 
