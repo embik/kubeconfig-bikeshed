@@ -1,5 +1,5 @@
 alias _inline_fzf="fzf --height=50% --reverse -0 --inline-info --border"
-alias _kbs_bin="$(whence -cp kbs)"
+alias _kbs_bin="$(type -p kbs)"
 
 function kbs() {
     if [ $# -eq 0 ]; then
