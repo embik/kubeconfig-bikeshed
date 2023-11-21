@@ -7,6 +7,6 @@ function kbs() {
         eval "$(_kbs_bin use $(_kbs_bin ls | _inline_fzf))"
     else
         # if parameters are passed, we just call the kbs binary directly
-        ${_kbs_bin} $@
+        _kbs_bin $@
     fi
 }
