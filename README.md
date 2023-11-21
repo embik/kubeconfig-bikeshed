@@ -11,6 +11,8 @@ kubeconfig-bikeshed - `kbs` - is an opinionated tool to manage your kubeconfigs 
 
 The core idea of this tool is that the context name should be meaningful. Not all Kubernetes deployment tools generate "good" context names. And _meaningful_ for me often meant renaming the context to the DNS name hosting the Kubernetes API. Therefore, `kbs` automatically discovers the server name from a kubeconfig that is being imported, and uses that to identify any conflicts with existing kubeconfigs and to set a meaningful context name.
 
+There is also a blog post available that gets into details of the initial version and the motivation to start this project: [Bikeshedding Kubeconfig Management](https://marvin.beckers.dev/blog/bikeshedding-kubeconfig-management/).
+
 ## Installation
 
 ### Homebrew
@@ -51,6 +53,7 @@ One of the most important features of a kubeconfig manager might be the ability 
 To remedy that, `kbs` optionally provides shell "magic" that replaces the `kbs` binary in your shell with a function that can export `KUBECONFIG`. This requires `fzf` to be installed. Shell magic is supported for a subset of shells, the currently supported shells are:
 
 - `zsh`
+- `bash`
 
 Specific instructions might differ by shell as well, e.g. to install the `zsh` magic you can add the following snippet to your `.zshrc`:
 
