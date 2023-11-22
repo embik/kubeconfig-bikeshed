@@ -8,6 +8,7 @@ pub mod prune;
 pub mod remove;
 pub mod shell;
 pub mod r#use;
+pub mod version;
 
 pub fn cli() -> Command {
     Command::new("kbs")
@@ -27,6 +28,7 @@ pub fn cli() -> Command {
             r#use::command(),
             shell::command(),
             remove::command(),
+            version::command(),
             // TODO: add subcommand 'fetch' to fetch kubeconfigs from remote systems.
             // TODO: add subcommand 'prune' to clean up kubeconfigs with dead server URLs.
         ])
@@ -42,6 +44,7 @@ pub fn execute(
         Some((r#use::NAME, sub_matches)) => handle(r#use::execute(config_path, sub_matches)),
         Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
         Some((remove::NAME, sub_matches)) => handle(remove::execute(config_path, sub_matches)),
+        Some((version::NAME, _)) => handle(version::execute()),
         _ => {
             log::error!("unknown command");
             process::exit(1);
