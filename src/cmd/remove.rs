@@ -1,6 +1,6 @@
 use std::{fs, path::Path};
 
-use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
+use clap::{value_parser, Arg, ArgMatches, Command};
 
 use crate::kubeconfig;
 
@@ -10,11 +10,7 @@ pub fn command() -> Command {
     Command::new(NAME)
         .alias("rm")
         .about("Delete kubeconfig by name")
-        .arg(
-            Arg::new("kubeconfig")
-                .action(ArgAction::Set)
-                .value_parser(value_parser!(String)),
-        )
+        .arg(Arg::new("kubeconfig").value_parser(value_parser!(String)))
         .arg_required_else_help(true)
 }
 
