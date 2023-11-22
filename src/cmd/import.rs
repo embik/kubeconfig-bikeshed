@@ -1,8 +1,8 @@
-use clap::{arg, ArgMatches, Command};
+use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use url::Url;
 
 use std::error::Error;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
@@ -16,18 +16,27 @@ pub fn command() -> Command {
         .alias("i")
         .about("Import a kubeconfig into store")
         .arg(
-            arg!(<KUBECONFIG> "kubeconfig to import")
-                .id("kubeconfig")
-                .value_parser(clap::value_parser!(std::path::PathBuf)),
+            Arg::new("kubeconfig")
+                .help("kubeconfig to import")
+                .value_parser(value_parser!(PathBuf)),
         )
         .arg(
-            arg!(<NAME> "Override context name")
-                .id("name")
+            Arg::new("name")
+                .help("Override context name")
                 .long("name")
                 .short('n')
                 .required(false)
                 .num_args(1)
                 .value_parser(clap::value_parser!(String)),
+        )
+        .arg(
+            Arg::new("delete")
+                .help("Delete original kubeconfig file after import")
+                .long("delete")
+                .short('d')
+                .required(false)
+                .action(ArgAction::SetTrue)
+                .value_parser(clap::value_parser!(bool)),
         )
         .arg_required_else_help(true)
 }
@@ -53,7 +62,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn E
         }
     };
 
-    log::debug!("using {:?} as name for kubeconfig file and context", name);
+    log::debug!("using {} as name for kubeconfig file and context", name);
 
     let target_path = config_path.join(format!("{}.kubeconfig", name));
 
@@ -63,7 +72,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn E
     // throwing an error.
     if target_path.exists() {
         return Err(Box::new(ImportError::FileExists(
-            kubeconfig_path.display().to_string(),
+            target_path.display().to_string(),
         )));
     }
 
@@ -74,6 +83,11 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn E
     serde_yaml::to_writer(file, &kubeconfig)?;
 
     log::info!("imported kubeconfig to {}", target_path.display());
+
+    if matches.get_flag("delete") {
+        fs::remove_file(kubeconfig_path)?;
+        log::debug!("deleted {}", kubeconfig_path.display());
+    }
 
     Ok(())
 }
