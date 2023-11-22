@@ -1,15 +1,15 @@
-use std::path::Path;
+use std::{fs, path::Path};
 
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 
 use crate::kubeconfig;
 
-pub const NAME: &str = "use";
+pub const NAME: &str = "remove";
 
 pub fn command() -> Command {
     Command::new(NAME)
-        .alias("u")
-        .about("Use a kubeconfig by name and print shell snippet to source")
+        .alias("rm")
+        .about("Delete kubeconfig by name")
         .arg(
             Arg::new("kubeconfig")
                 .action(ArgAction::Set)
@@ -27,7 +27,8 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn s
 
     match kubeconfig::get(&kubeconfig_path) {
         Ok(_) => {
-            print!("export KUBECONFIG={}", kubeconfig_path.display());
+            fs::remove_file(&kubeconfig_path)?;
+            log::info!("removed kubeconfig at {}", kubeconfig_path.display());
             Ok(())
         }
         Err(err) => Err(err),
