@@ -10,3 +10,5 @@
 
 # (Test) kubeconfigs
 *.kubeconfig
+.idea/
+.env

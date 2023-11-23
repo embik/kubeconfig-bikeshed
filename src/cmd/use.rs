@@ -1,9 +1,9 @@
+use anyhow::{anyhow, Result};
 use std::path::Path;
 
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 
-use crate::config;
-use crate::kubeconfig;
+use crate::{config, kubeconfig};
 
 pub const NAME: &str = "use";
 
@@ -19,12 +19,12 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
 }
 
-pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
+pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
     let mut requires_store = false;
 
     let config = match matches
         .get_one::<String>("kubeconfig")
-        .ok_or("failed to get kubeconfig argument")
+        .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))
     {
         Ok(s) if s == "-" => {
             let last_active = config::get_last_active(config_path)?;
@@ -35,21 +35,20 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn s
             requires_store = true;
             s.to_string()
         }
-        Err(e) => return Err(e.into()),
+        Err(e) => return Err(e),
     };
 
     let kubeconfig_path = config_path.join(format!("{config}.kubeconfig"));
 
-    match kubeconfig::get(&kubeconfig_path) {
-        Ok(_) => {
-            if requires_store {
-                config::save_last_active(config_path, &config)?;
-                log::debug!("stored {config} as last active kubeconfig");
-            }
-
-            print!("export KUBECONFIG={}", kubeconfig_path.display());
-            Ok(())
+    if kubeconfig::get(&kubeconfig_path).is_ok() {
+        if requires_store {
+            config::save_last_active(config_path, &config)?;
+            log::debug!("stored {config} as last active kubeconfig");
         }
-        Err(err) => Err(err),
+
+        print!("export KUBECONFIG={}", kubeconfig_path.display());
+        return Ok(());
     }
+
+    Err(anyhow!("Failed to load Kubeconfig!"))
 }

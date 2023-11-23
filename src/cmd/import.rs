@@ -1,12 +1,17 @@
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use url::Url;
 
-use std::error::Error;
-use std::fs::{self, File};
-use std::io::BufWriter;
-use std::path::{Path, PathBuf};
+use std::fs::{self};
+
+use anyhow::{anyhow, bail, Result};
 
 use crate::errors::ImportError;
+use std::{
+    fs::File,
+    io::BufWriter,
+    path::{Path, PathBuf},
+};
+
 use crate::kubeconfig;
 
 pub const NAME: &str = "import";
@@ -41,10 +46,10 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
 }
 
-pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
     let kubeconfig_path = matches
         .get_one::<PathBuf>("kubeconfig")
-        .ok_or("failed to parse kubeconfig argument")?;
+        .ok_or_else(|| anyhow!("failed to parse kubeconfig argument"))?;
     let kubeconfig = kubeconfig::get(kubeconfig_path)?;
 
     // read the name from the command line flag; if it's not set,
@@ -57,7 +62,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn E
             let url = Url::parse(hostname.as_str())?;
             let host = url
                 .host_str()
-                .ok_or("failed to parse host from server URL")?;
+                .ok_or_else(|| anyhow!("failed to parse host from server URL"))?;
             host.to_string()
         }
     };
@@ -71,9 +76,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn E
     // TODO: prompt the user for confirmation to override instead of
     // throwing an error.
     if target_path.exists() {
-        return Err(Box::new(ImportError::FileExists(
-            target_path.display().to_string(),
-        )));
+        bail!(ImportError::FileExists(format!("{:?}", target_path)));
     }
 
     let kubeconfig = kubeconfig::rename_context(&kubeconfig, &name)?;
