@@ -1,18 +1,14 @@
-use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
-use url::Url;
-
-use std::fs::{self};
-
-use anyhow::{anyhow, bail, Result};
-
 use crate::errors::ImportError;
+use crate::kubeconfig;
+use anyhow::{anyhow, bail, Result};
+use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
+use std::fs::{self};
 use std::{
     fs::File,
     io::BufWriter,
     path::{Path, PathBuf},
 };
-
-use crate::kubeconfig;
+use url::Url;
 
 pub const NAME: &str = "import";
 

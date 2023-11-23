@@ -1,10 +1,8 @@
+use crate::kubeconfig;
 use anyhow::anyhow;
-use std::{fs, path::Path};
-
 use anyhow::Result;
 use clap::{value_parser, Arg, ArgMatches, Command};
-
-use crate::kubeconfig;
+use std::{fs, path::Path};
 
 pub const NAME: &str = "remove";
 

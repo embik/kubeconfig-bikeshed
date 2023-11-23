@@ -1,9 +1,7 @@
-use anyhow::{anyhow, Result};
-use std::path::Path;
-
-use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
-
 use crate::{config, kubeconfig};
+use anyhow::{anyhow, Result};
+use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
+use std::path::Path;
 
 pub const NAME: &str = "use";
 

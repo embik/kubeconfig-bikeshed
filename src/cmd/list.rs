@@ -1,7 +1,6 @@
-use std::{fs, path::Path};
-
 use anyhow::{anyhow, Result};
 use clap::Command;
+use std::{fs, path::Path};
 
 pub const NAME: &str = "list";
 

@@ -1,8 +1,7 @@
+use crate::errors::ImportError;
 use anyhow::{anyhow, bail, Result};
 use kube::config::Kubeconfig;
 use std::{fs::File, path::Path};
-
-use crate::errors::ImportError;
 
 pub fn get(file: &Path) -> Result<Kubeconfig> {
     let kubeconfig_file = File::open(file)?;

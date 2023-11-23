@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Command;
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub const NAME: &str = "version";

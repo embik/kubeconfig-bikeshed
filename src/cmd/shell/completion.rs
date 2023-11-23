@@ -1,8 +1,7 @@
+use crate::cmd;
 use anyhow::Result;
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use clap_complete::{generate, Generator, Shell};
-
-use crate::cmd;
 
 pub const NAME: &str = "completion";
 

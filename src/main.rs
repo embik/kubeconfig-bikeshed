@@ -1,11 +1,12 @@
-mod cmd;
-mod config;
-mod errors;
-mod kubeconfig;
 use anyhow::Result;
 use env_logger::Builder;
 use log::{self};
 use std::{fs, process};
+
+mod cmd;
+mod config;
+mod errors;
+mod kubeconfig;
 
 fn main() -> Result<()> {
     let matches = cmd::cli().get_matches();
@@ -16,7 +17,7 @@ fn main() -> Result<()> {
 
     if !config_path.is_dir() {
         log::debug!("creating configuration directory as it does not exist");
-        fs::create_dir_all(&config_path).or_else(|err: std::io::Error| -> Result<()> {
+        fs::create_dir_all(&config_path).map_err(|err: std::io::Error| -> std::io::Error {
             log::error!("failed to create directory: {err}");
             process::exit(1);
         })?;

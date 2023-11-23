@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use clap::{builder::PossibleValue, value_parser, Arg, ArgAction, ArgMatches, Command};
+
 pub const NAME: &str = "magic";
 
 pub fn command() -> Command {
