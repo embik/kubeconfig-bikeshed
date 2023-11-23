@@ -758,6 +758,7 @@ dependencies = [
  "kube",
  "log",
  "serde",
+ "serde_json",
  "serde_yaml",
  "url",
 ]
