@@ -29,8 +29,8 @@ name = "kbs"
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive"] }
-kube = { version = "0.82", features = ["config", "derive"] }
-k8s-openapi = { version = "0.18.0", features = ["v1_26"] }
+kube = { version = "0.87.1", features = ["config", "derive"] }
+k8s-openapi = { version = "0.20.0", features = ["v1_28"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 log = "0.4"
