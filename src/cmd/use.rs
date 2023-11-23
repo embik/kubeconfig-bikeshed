@@ -29,6 +29,11 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
             log::debug!("found {last_active} as last active kubeconfig");
             last_active
         }
+        Ok(s) if s == "[unset]" => {
+            log::debug!("unsetting KUBECONFIG environment variable");
+            print!("unset KUBECONFIG");
+            return Ok(());
+        }
         Ok(s) => {
             requires_store = true;
             s.to_string()

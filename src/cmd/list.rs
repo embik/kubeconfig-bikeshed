@@ -35,6 +35,8 @@ pub fn execute(config_path: &Path) -> Result<()> {
         );
     }
 
+    println!("[unset]");
+
     Ok(())
 }
 
