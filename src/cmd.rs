@@ -1,7 +1,6 @@
-use std::{error::Error, path::Path, process};
-
+use anyhow::Result;
 use clap::{Arg, ArgMatches, Command};
-
+use std::path::Path;
 pub mod import;
 pub mod list;
 pub mod prune;
@@ -34,10 +33,7 @@ pub fn cli() -> Command {
         ])
 }
 
-pub fn execute(
-    config_path: &Path,
-    matches: Option<(&str, &ArgMatches)>,
-) -> Result<(), Box<dyn Error>> {
+pub fn execute(config_path: &Path, matches: Option<(&str, &ArgMatches)>) -> Result<()> {
     match matches {
         Some((list::NAME, _)) | None => handle(list::execute(config_path)),
         Some((import::NAME, sub_matches)) => handle(import::execute(config_path, sub_matches)),
@@ -47,17 +43,17 @@ pub fn execute(
         Some((version::NAME, _)) => handle(version::execute()),
         _ => {
             log::error!("unknown command");
-            process::exit(1);
+            std::process::exit(1);
         }
     }
 }
 
-fn handle(res: Result<(), Box<dyn std::error::Error>>) -> Result<(), Box<dyn Error>> {
+fn handle(res: Result<()>) -> Result<()> {
     match res {
         Err(err) => {
             log::error!("{err}");
-            process::exit(1);
+            std::process::exit(1);
         }
-        _ => process::exit(0),
+        _ => std::process::exit(0),
     }
 }

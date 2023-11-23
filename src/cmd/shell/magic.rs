@@ -1,6 +1,5 @@
-use clap::builder::PossibleValue;
-use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
-
+use anyhow::{anyhow, Result};
+use clap::{builder::PossibleValue, value_parser, Arg, ArgAction, ArgMatches, Command};
 pub const NAME: &str = "magic";
 
 pub fn command() -> Command {
@@ -16,10 +15,10 @@ pub fn command() -> Command {
         )
 }
 
-pub fn execute(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
+pub fn execute(matches: &ArgMatches) -> Result<()> {
     let shell = matches
         .get_one::<Shell>("shell")
-        .ok_or("cannot read shell")?;
+        .ok_or_else(|| anyhow!("cannot read shell"))?;
 
     let magic = match shell {
         Shell::Zsh => include_str!("./files/zsh/kbs.source"),

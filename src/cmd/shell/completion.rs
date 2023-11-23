@@ -1,3 +1,4 @@
+use anyhow::Result;
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use clap_complete::{generate, Generator, Shell};
 
@@ -17,7 +18,7 @@ pub fn command() -> Command {
         )
 }
 
-pub fn execute(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
+pub fn execute(matches: &ArgMatches) -> Result<()> {
     if let Some(shell) = matches.get_one::<Shell>("shell").copied() {
         let mut cmd = cmd::cli();
 

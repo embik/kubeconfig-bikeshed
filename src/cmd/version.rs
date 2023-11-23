@@ -1,3 +1,4 @@
+use anyhow::Result;
 use clap::Command;
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -7,7 +8,7 @@ pub fn command() -> Command {
     Command::new(NAME).alias("v").about("Print version")
 }
 
-pub fn execute() -> Result<(), Box<dyn std::error::Error>> {
+pub fn execute() -> Result<()> {
     println!("{VERSION}");
     Ok(())
 }
