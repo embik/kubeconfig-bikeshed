@@ -32,7 +32,8 @@ clap = { version = "4.2.7", features = ["derive"] }
 kube = { version = "0.87.1", features = ["config", "derive"] }
 k8s-openapi = { version = "0.20.0", features = ["v1_28"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
+serde_yaml = "0.9.27"
+serde_json = "1.0.108"
 log = "0.4"
 humantime = "2.1.0"
 env_logger = "0.10"

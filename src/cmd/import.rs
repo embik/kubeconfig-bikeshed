@@ -1,7 +1,9 @@
 use crate::errors::ImportError;
 use crate::kubeconfig;
+use crate::metadata::{self, Metadata};
 use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
+use std::collections::btree_map::BTreeMap;
 use std::fs::{self};
 use std::{
     fs::File,
@@ -31,6 +33,16 @@ pub fn command() -> Command {
                 .value_parser(clap::value_parser!(String)),
         )
         .arg(
+            Arg::new("labels")
+                .help("List of comma-separated key=value labels to add to the kubeconfig metadata")
+                .long("labels")
+                .short('l')
+                .required(false)
+                .num_args(0..)
+                .value_delimiter(',')
+                .value_parser(metadata::labels::parse_key_val::<String, String>),
+        )
+        .arg(
             Arg::new("delete")
                 .help("Delete original kubeconfig file after import")
                 .long("delete")
@@ -46,6 +58,27 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
     let kubeconfig_path = matches
         .get_one::<PathBuf>("kubeconfig")
         .ok_or_else(|| anyhow!("failed to parse kubeconfig argument"))?;
+
+    let labels = match matches.get_many::<(String, String)>("labels") {
+        Some(values_ref) => {
+            let vec: Vec<&(String, String)> = values_ref.into_iter().collect();
+            let mut btree = BTreeMap::new();
+            for (key, value) in vec.into_iter() {
+                btree.insert(key.clone(), value.clone());
+            }
+
+            Some(btree)
+        }
+        None => None,
+    };
+
+    let metadata_path = config_path.join(metadata::FILE);
+    log::debug!("loading metadata database from {}", metadata_path.display());
+    let metadata = match Metadata::from_file(&metadata_path) {
+        Ok(metadata) => metadata,
+        Err(_) => Metadata::new(),
+    };
+
     let kubeconfig = kubeconfig::get(kubeconfig_path)?;
 
     // read the name from the command line flag; if it's not set,
@@ -67,8 +100,6 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
 
     let target_path = config_path.join(format!("{}.kubeconfig", name));
 
-    log::debug!("importing kubeconfig to {}", target_path.display());
-
     // TODO: prompt the user for confirmation to override instead of
     // throwing an error.
     if target_path.exists() {
@@ -82,6 +113,14 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
     serde_yaml::to_writer(file, &kubeconfig)?;
 
     log::info!("imported kubeconfig to {}", target_path.display());
+
+    metadata
+        .set(name, metadata::ConfigMetadata { labels })
+        .write(&metadata_path)?;
+    log::debug!(
+        "wrote metadata database update to {}",
+        metadata_path.display()
+    );
 
     if matches.get_flag("delete") {
         fs::remove_file(kubeconfig_path)?;

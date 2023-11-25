@@ -12,8 +12,8 @@ pub mod version;
 
 pub fn cli() -> Command {
     Command::new("kbs")
-        .subcommand_required(false)
-        .arg_required_else_help(false)
+        .subcommand_required(true)
+        .arg_required_else_help(true)
         .arg(
             Arg::new("verbose")
                 .long("verbose")
@@ -36,7 +36,7 @@ pub fn cli() -> Command {
 
 pub fn execute(config_path: &Path, matches: Option<(&str, &ArgMatches)>) -> Result<()> {
     match matches {
-        Some((list::NAME, _)) | None => handle(list::execute(config_path)),
+        Some((list::NAME, sub_matches)) => handle(list::execute(config_path, sub_matches)),
         Some((import::NAME, sub_matches)) => handle(import::execute(config_path, sub_matches)),
         Some((r#use::NAME, sub_matches)) => handle(r#use::execute(config_path, sub_matches)),
         Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
