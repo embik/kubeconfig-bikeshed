@@ -4,8 +4,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub mod metadata;
-
 const ACTIVE_FILE_NAME: &str = "active";
 
 pub fn get_config_path() -> Result<PathBuf> {
@@ -13,7 +11,9 @@ pub fn get_config_path() -> Result<PathBuf> {
     // set.
     let base = match env::var("XDG_CONFIG_HOME") {
         Ok(s) => s.into(),
-        Err(_) => home::home_dir().ok_or_else(|| anyhow!("could not determine home directory"))?,
+        Err(_) => home::home_dir()
+            .ok_or_else(|| anyhow!("could not determine home directory"))?
+            .join(".config"),
     };
 
     Ok(base.join("kbs"))

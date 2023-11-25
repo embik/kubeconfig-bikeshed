@@ -4,7 +4,7 @@ alias _kbs_bin="$(whence -cp kbs)"
 function kbs() {
     if [ $# -eq 0 ]; then
         # if no parameters are passed, we want to run fzf on available kubeconfigs and set the selected one as active kubeconfig
-        eval "$(_kbs_bin use $(_kbs_bin ls | _kbs_inline_fzf))"
+        eval "$(_kbs_bin use $(_kbs_bin ls -u | _kbs_inline_fzf))"
     else
         # if parameters are passed, we just call the kbs binary directly
         _kbs_bin $@

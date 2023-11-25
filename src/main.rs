@@ -7,6 +7,7 @@ mod cmd;
 mod config;
 mod errors;
 mod kubeconfig;
+mod metadata;
 
 fn main() -> Result<()> {
     let matches = cmd::cli().get_matches();

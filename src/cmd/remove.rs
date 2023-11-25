@@ -1,4 +1,5 @@
 use crate::kubeconfig;
+use crate::metadata::{self, Metadata};
 use anyhow::anyhow;
 use anyhow::Result;
 use clap::{value_parser, Arg, ArgMatches, Command};
@@ -21,9 +22,23 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
 
     let kubeconfig_path = config_path.join(format!("{config}.kubeconfig"));
 
+    let metadata_path = config_path.join(metadata::FILE);
+    log::debug!("loading metadata database from {}", metadata_path.display());
+    let metadata = match Metadata::from_file(&metadata_path) {
+        Ok(metadata) => metadata,
+        Err(_) => Metadata::new(),
+    };
+
     if kubeconfig::get(&kubeconfig_path).is_ok() {
         fs::remove_file(&kubeconfig_path)?;
         log::info!("removed kubeconfig at {}", kubeconfig_path.display());
+
+        metadata.remove(config).write(&metadata_path)?;
+        log::debug!(
+            "wrote metadata database update to {}",
+            metadata_path.display()
+        );
+
         return Ok(());
     }
     Err(anyhow!("Kubeconfig not found: {:?}", kubeconfig_path))
