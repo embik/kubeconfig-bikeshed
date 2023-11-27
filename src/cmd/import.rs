@@ -5,6 +5,7 @@ use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::collections::btree_map::BTreeMap;
 use std::fs::{self};
+use std::os::unix::fs::PermissionsExt;
 use std::{
     fs::File,
     io::BufWriter,
@@ -109,6 +110,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
     let kubeconfig = kubeconfig::rename_context(&kubeconfig, &name)?;
 
     let file = File::create(&target_path)?;
+    file.set_permissions(fs::Permissions::from_mode(0o600))?;
     let file = BufWriter::new(file);
     serde_yaml::to_writer(file, &kubeconfig)?;
 
