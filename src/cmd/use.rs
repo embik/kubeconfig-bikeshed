@@ -7,7 +7,7 @@ pub const NAME: &str = "use";
 
 pub fn command() -> Command {
     Command::new(NAME)
-        .alias("u")
+        .visible_alias("u")
         .about("Use a kubeconfig by name and print shell snippet to source")
         .arg(
             Arg::new("kubeconfig")

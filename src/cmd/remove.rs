@@ -9,7 +9,8 @@ pub const NAME: &str = "remove";
 
 pub fn command() -> Command {
     Command::new(NAME)
-        .alias("rm")
+        .visible_alias("rm")
+        .visible_alias("delete")
         .about("Delete kubeconfig by name")
         .arg(Arg::new("kubeconfig").value_parser(value_parser!(String)))
         .arg_required_else_help(true)

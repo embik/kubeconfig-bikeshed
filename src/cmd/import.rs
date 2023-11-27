@@ -16,7 +16,7 @@ pub const NAME: &str = "import";
 
 pub fn command() -> Command {
     Command::new(NAME)
-        .alias("i")
+        .visible_alias("i")
         .about("Import a kubeconfig into store")
         .arg(
             Arg::new("kubeconfig")
@@ -35,7 +35,7 @@ pub fn command() -> Command {
         .arg(
             Arg::new("labels")
                 .help("List of comma-separated key=value labels to add to the kubeconfig metadata")
-                .long("labels")
+                .long("set-labels")
                 .short('l')
                 .required(false)
                 .num_args(0..)

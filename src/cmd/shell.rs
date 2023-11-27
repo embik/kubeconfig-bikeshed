@@ -8,7 +8,7 @@ pub const NAME: &str = "shell";
 
 pub fn command() -> Command {
     Command::new(NAME)
-        .alias("sh")
+        .visible_alias("sh")
         .about("Print various shell related scripts")
         .subcommands([completion::command(), magic::command()])
         .arg_required_else_help(true)
