@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use clap::builder::PossibleValue;
 use std::{
     env, fs, io,
     path::{Path, PathBuf},
@@ -25,4 +26,30 @@ pub fn get_last_active(config_path: &Path) -> io::Result<String> {
 
 pub fn save_last_active(config_path: &Path, name: &String) -> io::Result<()> {
     fs::write(config_path.join(ACTIVE_FILE_NAME), name)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
+pub enum Output {
+    Name,
+    Table,
+}
+
+impl clap::ValueEnum for Output {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Output::Name, Output::Table]
+    }
+
+    fn to_possible_value<'a>(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Output::Name => PossibleValue::new("name"),
+            Output::Table => PossibleValue::new("table"),
+        })
+    }
+}
+
+impl From<Output> for clap::builder::OsStr {
+    fn from(value: Output) -> clap::builder::OsStr {
+        value.into()
+    }
 }
