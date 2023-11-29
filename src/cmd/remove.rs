@@ -11,20 +11,20 @@ pub fn command() -> Command {
     Command::new(NAME)
         .visible_alias("rm")
         .visible_alias("delete")
-        .about("Delete kubeconfig by name")
+        .about("Remove kubeconfig from data store")
         .arg(Arg::new("kubeconfig").value_parser(value_parser!(String)))
         .arg_required_else_help(true)
 }
 
-pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
+pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     let config = matches
         .get_one::<String>("kubeconfig")
         .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))?;
 
-    let kubeconfig_path = config_path.join(format!("{config}.kubeconfig"));
+    let kubeconfig_path = config_dir.join(format!("{config}.kubeconfig"));
 
-    let metadata_path = config_path.join(metadata::FILE);
-    log::debug!("loading metadata database from {}", metadata_path.display());
+    let metadata_path = metadata::file_path(config_dir);
+    log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
         Err(_) => Metadata::new(),

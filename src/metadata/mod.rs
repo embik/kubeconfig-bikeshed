@@ -1,7 +1,7 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::btree_map::BTreeMap;
-use std::{fs::File, path::Path};
+use std::{fs::File, path::Path, path::PathBuf};
 
 pub mod labels;
 
@@ -28,7 +28,7 @@ impl Metadata {
 
         let metadata = match serde_json::from_reader::<File, Metadata>(metadata_file) {
             Ok(metadata) => metadata,
-            Err(err) => return Err(anyhow!(err)),
+            Err(err) => bail!(err),
         };
 
         if metadata.version != VERSION {
@@ -50,9 +50,9 @@ impl Metadata {
         }
     }
 
-    pub fn get(&self, name: String) -> Option<&ConfigMetadata> {
+    pub fn get(&self, name: &str) -> Option<&ConfigMetadata> {
         let map = &self.kubeconfigs;
-        map.get(&name)
+        map.get(name)
     }
 
     pub fn set(mut self, name: String, metadata: ConfigMetadata) -> Self {
@@ -61,7 +61,7 @@ impl Metadata {
         self
     }
 
-    pub fn remove(mut self, name: &String) -> Self {
+    pub fn remove(mut self, name: &str) -> Self {
         let map = &mut self.kubeconfigs;
         map.remove(name);
         self
@@ -71,4 +71,8 @@ impl Metadata {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ConfigMetadata {
     pub labels: Option<BTreeMap<String, String>>,
+}
+
+pub fn file_path(config_dir: &Path) -> PathBuf {
+    config_dir.join(FILE)
 }

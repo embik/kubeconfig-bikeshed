@@ -1,30 +1,34 @@
 use anyhow::Result;
-use env_logger::Builder;
-use log::{self};
-use std::{fs, process};
 
 mod cmd;
 mod config;
-mod errors;
 mod kubeconfig;
 mod metadata;
 
 fn main() -> Result<()> {
     let matches = cmd::cli().get_matches();
-    let config_path = config::get_config_path()?;
-
+    let config_dir = config::get_config_dir()?;
     setup_logger(matches.get_flag("verbose"))?;
-    log::debug!("using {} as configuration directory", config_path.display());
 
-    if !config_path.is_dir() {
+    log::debug!("using {} as configuration directory", config_dir.display());
+
+    if config_dir.is_file() {
+        log::error!(
+            "configuration directory {} cannot be a file",
+            config_dir.display()
+        );
+        std::process::exit(1);
+    }
+
+    if !config_dir.is_dir() {
         log::debug!("creating configuration directory as it does not exist");
-        fs::create_dir_all(&config_path).map_err(|err: std::io::Error| -> std::io::Error {
+        std::fs::create_dir_all(&config_dir).map_err(|err: std::io::Error| -> std::io::Error {
             log::error!("failed to create directory: {err}");
-            process::exit(1);
+            std::process::exit(1);
         })?;
     }
 
-    cmd::execute(&config_path, matches.subcommand())
+    cmd::execute(&config_dir, matches.subcommand())
 }
 
 fn setup_logger(verbose: bool) -> Result<()> {
@@ -33,7 +37,7 @@ fn setup_logger(verbose: bool) -> Result<()> {
         false => log::LevelFilter::Info,
     };
 
-    Ok(Builder::new()
+    Ok(env_logger::Builder::new()
         .filter_level(filter_level)
         .format_target(false)
         .try_init()?)

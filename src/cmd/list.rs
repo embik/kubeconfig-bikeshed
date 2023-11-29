@@ -44,8 +44,8 @@ pub fn command() -> Command {
         .arg_required_else_help(false)
 }
 
-pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
-    log::debug!("looking for kubeconfigs in {}", config_path.display());
+pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
+    log::debug!("looking for kubeconfigs in {}", config_dir.display());
 
     let output = matches
         .get_one::<Output>("output")
@@ -55,10 +55,11 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
         .get_many::<(String, String)>("labels")
         .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
 
-    let metadata_path = config_path.join(metadata::FILE);
-    log::debug!("loading metadata database from {}", metadata_path.display());
+    let metadata_path = metadata::file_path(config_dir);
+    log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
+        // TODO: don't ignore failing to parse metadata
         Err(_) => Metadata::new(),
     };
 
@@ -67,7 +68,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
         println!("{0: <25}\t{1: <25}", "NAME", "LABELS");
     }
 
-    let files = fs::read_dir(config_path)?;
+    let files = fs::read_dir(config_dir)?;
     for file in files {
         let file = file?.path();
 
@@ -75,13 +76,13 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
             continue;
         }
 
-        let file_name = file
+        let name = file
             .file_stem()
             .ok_or_else(|| anyhow!("cannot determine basename"))?
             .to_str()
-            .ok_or_else(|| anyhow!("cannot convert file name to string"))?;
+            .ok_or_else(|| anyhow!("cannot convert file path to string"))?;
 
-        let labels = match metadata.get(file_name.to_string()) {
+        let labels = match metadata.get(name) {
             Some(m) => m.labels.clone().unwrap_or_default(),
             None => BTreeMap::new(),
         };
@@ -105,8 +106,8 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
         println!(
             "{}",
             match *output {
-                Output::Name => format!("{file_name}"),
-                Output::Table => format!("{0: <25}\t{1: <25}", file_name, format_labels(&labels)),
+                Output::Name => name.to_string(),
+                Output::Table => format!("{0: <25}\t{1: <25}", name, format_labels(&labels)),
             }
         );
     }
