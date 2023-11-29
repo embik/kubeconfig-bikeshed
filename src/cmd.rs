@@ -3,6 +3,7 @@ use clap::{Arg, ArgMatches, Command};
 use std::path::Path;
 
 pub mod import;
+pub mod label;
 pub mod list;
 pub mod prune;
 pub mod remove;
@@ -29,6 +30,7 @@ pub fn cli() -> Command {
             shell::command(),
             remove::command(),
             version::command(),
+            label::command(),
             // TODO: add subcommand 'fetch' to fetch kubeconfigs from remote systems.
             // TODO: add subcommand 'prune' to clean up kubeconfigs with dead server URLs.
         ])
@@ -41,6 +43,7 @@ pub fn execute(config_path: &Path, matches: Option<(&str, &ArgMatches)>) -> Resu
         Some((r#use::NAME, sub_matches)) => handle(r#use::execute(config_path, sub_matches)),
         Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
         Some((remove::NAME, sub_matches)) => handle(remove::execute(config_path, sub_matches)),
+        Some((label::NAME, sub_matches)) => handle(label::execute(config_path, sub_matches)),
         Some((version::NAME, _)) => handle(version::execute()),
         _ => {
             log::error!("unknown command");

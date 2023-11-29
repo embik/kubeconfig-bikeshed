@@ -9,7 +9,7 @@ pub const FILE: &str = "metadata.json";
 
 const VERSION: &str = "0.1";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Metadata {
     pub version: String,
     pub kubeconfigs: BTreeMap<String, ConfigMetadata>,
@@ -68,7 +68,7 @@ impl Metadata {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ConfigMetadata {
     pub labels: Option<BTreeMap<String, String>>,
 }
