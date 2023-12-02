@@ -5,9 +5,12 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(test)]
+mod tests;
+
 const ACTIVE_FILE_NAME: &str = "active";
 
-pub fn get_config_path() -> Result<PathBuf> {
+pub fn get_config_dir() -> Result<PathBuf> {
     // attempt to respect XDG_CONFIG_HOME, fall back to $HOME/.config if it's not
     // set.
     let base = match env::var("XDG_CONFIG_HOME") {

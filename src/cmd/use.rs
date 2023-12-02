@@ -12,6 +12,7 @@ pub fn command() -> Command {
         .arg(
             Arg::new("kubeconfig")
                 .action(ArgAction::Set)
+                .help("Name of the kubeconfig to use. Pass '-' to use the kubeconfig last used and '[unset]' to unset the KUBECONFIG environment variable")
                 .value_parser(value_parser!(String)),
         )
         .arg_required_else_help(true)
@@ -53,5 +54,5 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
         return Ok(());
     }
 
-    Err(anyhow!("Failed to load Kubeconfig!"))
+    Err(anyhow!("failed to load kubeconfig"))
 }

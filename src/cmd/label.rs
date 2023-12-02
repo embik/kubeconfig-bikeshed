@@ -1,7 +1,6 @@
-use crate::metadata::{self, ConfigMetadata, Metadata};
+use crate::metadata::{self, labels, ConfigMetadata, Metadata};
 use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
-use std::collections::btree_map::BTreeMap;
 use std::path::Path;
 
 pub const NAME: &str = "label";
@@ -28,56 +27,35 @@ pub fn command() -> Command {
         )
 }
 
-pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
+pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     let config = matches
         .get_one::<String>("kubeconfig")
         .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))?;
 
-    let metadata_path = config_path.join(metadata::FILE);
-    log::debug!("loading metadata database from {}", metadata_path.display());
+    let metadata_path = metadata::file_path(config_dir);
+    log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(_) => Metadata::new(),
+        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => {
+            log::debug!("failed to find metadata file, creating empty metadata store");
+            Metadata::new()
+        }
+        Err(err) => bail!(err),
     };
 
-    let mut labels = BTreeMap::new();
+    // collect labels from argument into map
+    let labels = labels::collect_from_args(matches, "labels")?;
 
-    matches
-        .get_many::<(String, String)>("labels")
-        .ok_or_else(|| anyhow!("failed to parse labels"))?
-        .into_iter()
-        .for_each(|(key, value)| {
-            labels.insert(key.clone(), value.clone());
-        });
-
-    if let Some(config_metadata) = metadata.get(config.to_string()) {
+    // if kubeconfig has metadata already, we need to merge labels
+    if let Some(config_metadata) = metadata.get(config) {
         let mut config_metadata = config_metadata.clone();
 
-        let merged_labels = match &config_metadata.labels {
-            Some(existing_labels) => {
-                log::debug!("found existing labels for kubeconfig");
-                let mut merged_labels = existing_labels.clone();
-                for (key, value) in labels.iter() {
-                    if let Some(old_value) =
-                        merged_labels.insert(key.to_string(), value.to_string())
-                    {
-                        if !old_value.eq(value) && !matches.get_flag("overwrite") {
-                            bail!(
-                                "cannot set key '{}' to value '{}', is '{}' already",
-                                key,
-                                value,
-                                old_value
-                            );
-                        }
-                    }
-                }
+        config_metadata.labels = Some(labels::merge_labels(
+            &config_metadata,
+            &labels,
+            matches.get_flag("overwrite"),
+        )?);
 
-                merged_labels
-            }
-            None => labels.clone(),
-        };
-
-        config_metadata.labels = Some(merged_labels);
         metadata
             .set(config.to_string(), config_metadata)
             .write(&metadata_path)?;
@@ -87,6 +65,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
         return Ok(());
     }
 
+    // no previous metadata exists for this kubeconfig, so we can safely set it
     metadata
         .set(
             config.to_string(),

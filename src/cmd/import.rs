@@ -1,9 +1,7 @@
-use crate::errors::ImportError;
 use crate::kubeconfig;
-use crate::metadata::{self, Metadata};
+use crate::metadata::{self, labels, Metadata};
 use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
-use std::collections::btree_map::BTreeMap;
 use std::fs::{self};
 use std::os::unix::fs::PermissionsExt;
 use std::{
@@ -18,7 +16,8 @@ pub const NAME: &str = "import";
 pub fn command() -> Command {
     Command::new(NAME)
         .visible_alias("i")
-        .about("Import a kubeconfig into store")
+        .about("Import a kubeconfig into data store")
+        .arg_required_else_help(true)
         .arg(
             Arg::new("kubeconfig")
                 .help("kubeconfig to import")
@@ -52,32 +51,25 @@ pub fn command() -> Command {
                 .action(ArgAction::SetTrue)
                 .value_parser(clap::value_parser!(bool)),
         )
-        .arg_required_else_help(true)
 }
 
-pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
+pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     let kubeconfig_path = matches
         .get_one::<PathBuf>("kubeconfig")
         .ok_or_else(|| anyhow!("failed to parse kubeconfig argument"))?;
 
-    let labels = match matches.get_many::<(String, String)>("labels") {
-        Some(values_ref) => {
-            let vec: Vec<&(String, String)> = values_ref.into_iter().collect();
-            let mut btree = BTreeMap::new();
-            for (key, value) in vec.into_iter() {
-                btree.insert(key.clone(), value.clone());
-            }
+    // collect labels from argument into map
+    let labels = labels::collect_from_args(matches, "labels")?;
 
-            Some(btree)
-        }
-        None => None,
-    };
-
-    let metadata_path = config_path.join(metadata::FILE);
-    log::debug!("loading metadata database from {}", metadata_path.display());
+    let metadata_path = metadata::file_path(config_dir);
+    log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(_) => Metadata::new(),
+        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => {
+            log::debug!("failed to find metadata file, creating empty metadata store");
+            Metadata::new()
+        }
+        Err(err) => bail!(err),
     };
 
     let kubeconfig = kubeconfig::get(kubeconfig_path)?;
@@ -99,12 +91,16 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
 
     log::debug!("using {} as name for kubeconfig file and context", name);
 
-    let target_path = config_path.join(format!("{}.kubeconfig", name));
+    let target_path = config_dir.join(format!("{}.kubeconfig", name));
 
     // TODO: prompt the user for confirmation to override instead of
     // throwing an error.
     if target_path.exists() {
-        bail!(ImportError::FileExists(format!("{:?}", target_path)));
+        bail!(
+            "kubeconfig {} already exists at {}",
+            name,
+            target_path.display()
+        );
     }
 
     let kubeconfig = kubeconfig::rename_context(&kubeconfig, &name)?;
@@ -117,8 +113,14 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
     log::info!("imported kubeconfig to {}", target_path.display());
 
     metadata
-        .set(name, metadata::ConfigMetadata { labels })
+        .set(
+            name,
+            metadata::ConfigMetadata {
+                labels: Some(labels),
+            },
+        )
         .write(&metadata_path)?;
+
     log::debug!(
         "wrote metadata database update to {}",
         metadata_path.display()

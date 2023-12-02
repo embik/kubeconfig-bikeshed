@@ -1,18 +1,20 @@
-use crate::errors::ImportError;
 use anyhow::{anyhow, bail, Result};
 use kube::config::Kubeconfig;
 use std::{fs::File, path::Path};
+
+#[cfg(test)]
+mod tests;
 
 pub fn get(file: &Path) -> Result<Kubeconfig> {
     let kubeconfig_file = File::open(file)?;
 
     let kubeconfig = match serde_yaml::from_reader::<File, Kubeconfig>(kubeconfig_file) {
         Ok(kubeconfig) => kubeconfig,
-        Err(err) => return Err(anyhow!(err)),
+        Err(err) => bail!(err),
     };
 
     if !is_valid(&kubeconfig) {
-        bail!(ImportError::InvalidConfiguration);
+        bail!("kubeconfig structure is not supported yet");
     }
 
     Ok(kubeconfig)
@@ -22,26 +24,18 @@ fn is_valid(kubeconfig: &Kubeconfig) -> bool {
     kubeconfig.auth_infos.len() == 1 && kubeconfig.clusters.len() == 1
 }
 
-pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String, ImportError> {
-    let named_cluster = kubeconfig
+pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String> {
+    Ok(kubeconfig
         .clusters
         .first()
-        .ok_or(ImportError::InvalidCluster(
-            "could not get cluster".to_string(),
-        ))?;
-
-    let cluster = named_cluster
-        .clone()
+        .ok_or_else(|| anyhow!("could not get first cluster from kubeconfig"))?
         .cluster
-        .ok_or(ImportError::InvalidCluster(
-            "could not get cluster".to_string(),
-        ))?;
-
-    let server = cluster.server.ok_or(ImportError::InvalidCluster(
-        "could not get server from cluster".to_string(),
-    ))?;
-
-    Ok(server)
+        .as_ref()
+        .ok_or_else(|| anyhow!("could not get cluster from kubeconfig"))?
+        .server
+        .as_ref()
+        .ok_or_else(|| anyhow!("could not get server address from cluster"))?
+        .to_string())
 }
 
 pub fn rename_context(kubeconfig: &Kubeconfig, context_name: &str) -> Result<Kubeconfig> {
