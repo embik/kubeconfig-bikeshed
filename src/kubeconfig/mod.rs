@@ -2,6 +2,9 @@ use anyhow::{anyhow, bail, Result};
 use kube::config::Kubeconfig;
 use std::{fs::File, path::Path};
 
+#[cfg(test)]
+mod tests;
+
 pub fn get(file: &Path) -> Result<Kubeconfig> {
     let kubeconfig_file = File::open(file)?;
 

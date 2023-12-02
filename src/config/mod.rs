@@ -5,6 +5,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(test)]
+mod tests;
+
 const ACTIVE_FILE_NAME: &str = "active";
 
 pub fn get_config_dir() -> Result<PathBuf> {
