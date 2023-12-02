@@ -1,8 +1,11 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::btree_map::BTreeMap;
 use std::{fs::File, path::Path, path::PathBuf};
 
+pub use errors::Error;
+
+mod errors;
 pub mod labels;
 
 pub const FILE: &str = "metadata.json";
@@ -23,16 +26,19 @@ impl Metadata {
         }
     }
 
-    pub fn from_file(file: &Path) -> Result<Metadata> {
-        let metadata_file = File::open(file)?;
+    pub fn from_file(file: &Path) -> Result<Metadata, Error> {
+        let metadata_file = match File::open(file) {
+            Ok(file) => file,
+            Err(err) => return Err(Error::IO(err.to_string(), err.kind())),
+        };
 
         let metadata = match serde_json::from_reader::<File, Metadata>(metadata_file) {
             Ok(metadata) => metadata,
-            Err(err) => bail!(err),
+            Err(err) => return Err(Error::Deserialize(err.to_string())),
         };
 
         if metadata.version != VERSION {
-            return Err(anyhow!("unknown metadata version detected"));
+            return Err(Error::UnknownVersion(metadata.version));
         }
 
         Ok(metadata)

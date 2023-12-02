@@ -1,7 +1,7 @@
 use crate::metadata::{self, labels, ConfigMetadata, Metadata};
 use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
-use std::{collections::BTreeMap, path::Path};
+use std::path::Path;
 
 pub const NAME: &str = "label";
 
@@ -36,7 +36,11 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(_) => Metadata::new(),
+        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => {
+            log::debug!("failed to find metadata file, creating empty metadata store");
+            Metadata::new()
+        }
+        Err(err) => bail!(err),
     };
 
     // collect labels from argument into map
@@ -46,7 +50,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     if let Some(config_metadata) = metadata.get(config) {
         let mut config_metadata = config_metadata.clone();
 
-        config_metadata.labels = Some(merge_labels(
+        config_metadata.labels = Some(labels::merge_labels(
             &config_metadata,
             &labels,
             matches.get_flag("overwrite"),
@@ -74,33 +78,4 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::info!("updated labels for {}", config);
 
     Ok(())
-}
-
-fn merge_labels(
-    metadata: &ConfigMetadata,
-    new_labels: &BTreeMap<String, String>,
-    overwrite: bool,
-) -> Result<BTreeMap<String, String>> {
-    match &metadata.labels {
-        Some(existing_labels) => {
-            log::debug!("found existing labels for kubeconfig");
-            let mut merged_labels = existing_labels.clone();
-
-            for (key, value) in new_labels.iter() {
-                if let Some(old_value) = merged_labels.insert(key.to_string(), value.to_string()) {
-                    if !old_value.eq(value) && !overwrite {
-                        bail!(
-                            "cannot set key '{}' to value '{}', is '{}' already",
-                            key,
-                            value,
-                            old_value
-                        );
-                    }
-                }
-            }
-
-            Ok(merged_labels)
-        }
-        None => Ok(new_labels.clone()),
-    }
 }

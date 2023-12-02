@@ -1,7 +1,7 @@
 use crate::kubeconfig;
 use crate::metadata::{self, Metadata};
-use anyhow::anyhow;
 use anyhow::Result;
+use anyhow::{anyhow, bail};
 use clap::{value_parser, Arg, ArgMatches, Command};
 use std::{fs, path::Path};
 
@@ -27,7 +27,8 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(_) => Metadata::new(),
+        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => Metadata::new(),
+        Err(err) => bail!(err),
     };
 
     if kubeconfig::get(&kubeconfig_path).is_ok() {
@@ -42,5 +43,6 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
         return Ok(());
     }
+
     Err(anyhow!("Kubeconfig not found: {:?}", kubeconfig_path))
 }

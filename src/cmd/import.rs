@@ -65,7 +65,11 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(_) => Metadata::new(),
+        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => {
+            log::debug!("failed to find metadata file, creating empty metadata store");
+            Metadata::new()
+        }
+        Err(err) => bail!(err),
     };
 
     let kubeconfig = kubeconfig::get(kubeconfig_path)?;
@@ -116,6 +120,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             },
         )
         .write(&metadata_path)?;
+
     log::debug!(
         "wrote metadata database update to {}",
         metadata_path.display()

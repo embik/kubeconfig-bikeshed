@@ -1,4 +1,5 @@
-use anyhow::{anyhow, Result};
+use crate::metadata::ConfigMetadata;
+use anyhow::{anyhow, bail, Result};
 use std::{collections::BTreeMap, error::Error};
 
 use clap::ArgMatches;
@@ -28,4 +29,32 @@ pub fn collect_from_args(matches: &ArgMatches, id: &str) -> Result<BTreeMap<Stri
         });
 
     Ok(map)
+}
+
+pub fn merge_labels(
+    metadata: &ConfigMetadata,
+    new_labels: &BTreeMap<String, String>,
+    overwrite: bool,
+) -> Result<BTreeMap<String, String>> {
+    match &metadata.labels {
+        Some(existing_labels) => {
+            let mut merged_labels = existing_labels.clone();
+
+            for (key, value) in new_labels.iter() {
+                if let Some(old_value) = merged_labels.insert(key.to_string(), value.to_string()) {
+                    if !old_value.eq(value) && !overwrite {
+                        bail!(
+                            "cannot set key '{}' to value '{}', is '{}' already",
+                            key,
+                            value,
+                            old_value
+                        );
+                    }
+                }
+            }
+
+            Ok(merged_labels)
+        }
+        None => Ok(new_labels.clone()),
+    }
 }
