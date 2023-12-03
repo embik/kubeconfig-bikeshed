@@ -1,21 +1,30 @@
 # kubeconfig-bikeshed
 
-There are few topics in software engineering that have been [bikeshedded](https://en.wiktionary.org/wiki/bikeshed) as much as personal workflow tools. The Cloud Native space is not exempted from that. The way of managing your kubeconfigs to use with `kubectl` (and other command line tools) is a highly personal choice.
+kubeconfig-bikeshed - `kbs` - is an opinionated tool to manage your kubeconfigs for accessing many Kubernetes APIs. Instead of managing a single kubeconfig file with many contexts, `kbs` maintains many kubeconfig files that can easily be switched between.
 
-kubeconfig-bikeshed - `kbs` - is an opinionated tool to manage your kubeconfigs for accessing many Kubernetes APIs. Instead of managing a single kubeconfig file with many contexts, `kbs` maintains many kubeconfig files that can be switched between.
+See the demo below for a typical `kbs` workflow (this assumes that all optional shell integration is set up):
 
-`kbs` is a personal project with two objectives:
+![kbs demo](./docs/kbs.gif)
 
-1. Write tooling for my own workflows.
-1. Learn Rust.
+## Why `kbs`?
 
-The core idea of this tool is that the context name should be meaningful. Not all Kubernetes deployment tools generate "good" context names. And _meaningful_ for me often meant renaming the context to the DNS name hosting the Kubernetes API. Therefore, `kbs` automatically discovers the server name from a kubeconfig that is being imported, and uses that to identify any conflicts with existing kubeconfigs and to set a meaningful context name.
+`kbs` can help restoring order to a scattered and inconsistent collection of kubeconfigs. It does so by enforcing standardized naming, by taking ownership of its kubeconfigs and by allowing to apply bulk operations like purging outdated kubeconfigs.
 
-There is also a blog post available that gets into details of the initial version and the motivation to start this project: [Bikeshedding Kubeconfig Management](https://marvin.beckers.dev/blog/bikeshedding-kubeconfig-management/).
+`kbs` maintains a kubeconfig "data store", which by default is located in `~/.config/kbs` (`kbs` is aware of `XDG_CONFIG_HOME` and looks for the store directory in `$XDG_CONFIG_HOME/kbs` if it is set). For kubeconfigs imported into its store, `kbs` allows to set and update labels (just like on Kubernetes objects) that can be used to run bulk operations.
+
+When it comes to naming standards, the core idea of `kbs` is that not all Kubernetes deployment tools generate "good" context names. Therefore, `kbs` automatically discovers the server name from a kubeconfig that is being imported, and uses that to identify any conflicts with existing kubeconfigs and to set a meaningful context name. This can be overridden, but `kbs` expects **all names to be valid DNS-style names**.
+
+There is also a blog post that gets into details of the initial version and the motivation to start this project: [Bikeshedding Kubeconfig Management](https://marvin.beckers.dev/blog/bikeshedding-kubeconfig-management/).
 
 ## Installation
 
-### Homebrew
+kubeconfig-bikeshed can be installed as a standalone binary called `kbs`. Optionally, a `kbs` shell function that overrides the binary call can be loaded into some shells to allow selecting an active kubeconfig (see [Setup](#Setup)).
+
+### Options
+
+`kbs` can currently be installed via [Homebrew](https://brew.sh) or `cargo`.
+
+#### Homebrew
 
 `kbs` is available from my [tap](https://github.com/embik/homebrew-tap):
 
@@ -24,7 +33,7 @@ $ brew tap embik/tap
 $ brew install kubeconfig-bikeshed
 ```
 
-### Others (via `cargo`)
+#### Cargo
 
 kubeconfig-bikeshed is also directly available from [crates.io](https://crates.io) and can be installed via `cargo` (if a working Rust toolchain is installed):
 
@@ -34,11 +43,11 @@ $ cargo install kubeconfig-bikeshed
 
 This will install the `kbs` binary. Make sure `$HOME/.cargo/bin` is in your `PATH`.
 
-## Setup
+### Setup
 
-After installing `kbs`, a few things can be set up for smoother usage of it. To change between contexts and namespaces, it is recommended to also install [kubectx](https://github.com/ahmetb/kubectx).
+After installing `kbs`, a few things can be set up for smoother usage of it. To change between contexts and namespaces, it is recommended to also install [fubectl](https://github.com/kubermatic/fubectl).
 
-### Autocompletion
+#### Autocompletion
 
 `kbs` can generate shell autocompletion for many available shells via the `kbs shell completion` command. Specific instructions might differ by shell. For example, to install the `zsh` autocompletion, add the following snippet to your `.zshrc`:
 
@@ -46,7 +55,7 @@ After installing `kbs`, a few things can be set up for smoother usage of it. To 
 source <(kbs shell completion zsh)
 ```
 
-### `KUBECONFIG` Magic
+#### "Magic" Shell Functions
 
 One of the most important features of a kubeconfig manager might be the ability to set the environment variable `KUBECONFIG` to point to a kubeconfig file of your choice. Unfortunately, the `kbs` binary on its own cannot provide that feature as it cannot set environment variables for the active shell.
 
@@ -61,22 +70,59 @@ Specific instructions might differ by shell as well, e.g. to install the `zsh` m
 source <(kbs shell magic zsh)
 ```
 
+#### Restore Last Active Kubeconfig
+
+To start new shells with the last selected ("active") kubeconfig, add the following snippet (or similar, depending on your shell) to your login shell configuration (e.g. `.zshrc`):
+
+```sh
+eval $(kbs use -)
+```
+
 ## Usage
 
-```
-Usage: kbs [OPTIONS] [COMMAND]
+To select a kubeconfig from the `kbs` data store, simply run `kbs` (if shell integration is all set up). This will offer a selection via `fzf` and export the `KUBECONFIG` environment variable.
+
+Full set of commands for `kbs` below.
+
+```sh
+Usage: kbs [OPTIONS] <COMMAND>
 
 Commands:
-  import  Import a kubeconfig into store
-  list    List available kubeconfigs
-  use     Use a kubeconfig by name and print shell snippet to source
-  shell   Print various shell related scripts
-  help    Print this message or the help of the given subcommand(s)
+  import   Import a kubeconfig into data store [aliases: i]
+  list     List available kubeconfigs [aliases: ls]
+  use      Use a kubeconfig by name and print shell snippet to source [aliases: u]
+  shell    Print various shell related scripts [aliases: sh]
+  remove   Remove kubeconfig from data store [aliases: rm, delete]
+  version  Print version [aliases: v]
+  label    Manage labels on kubeconfigs [aliases: l]
+  help     Print this message or the help of the given subcommand(s)
 
 Options:
   -v, --verbose  Enable verbose (debug) logging
   -h, --help     Print help
 ```
+
+### Importing Kubeconfigs
+
+`kbs import` allows to _import_ a kubeconfig already existing on the local filesystem (e.g. because it was downloaded via a third-party tool or a web interface) into the kbs "data store".
+
+The command takes a couple of flags to alter behaviour of the import process:
+
+- `--name` / `-n`: allows setting a name override that is used for kubeconfig (context) name. This should still be a valid DNS-style name.
+- `--delete` / `-d`: deletes the original kubeconfig after importing it into the data store (e.g. to clean up `~/Downloads`).
+- `--set-labels` / `-l`: allows setting `key=value` pairs as labels on the imported kubeconfig. Multiple labels can be passed when separated by comma.
+
+### Updating Kubeconfig Labels
+
+Currently, `kbs` only supports updating kubeconfig labels.
+
+`kbs label` allows setting new labels on a kubeconfig identified by name. Labels can be passed as `key=value` pairs, separated by comma. Existing labels do not get removed unless `key-` is part of the passed labels.
+
+Existing label values can only be updated if `--overwrite` is set, mimicking `kubectl` behaviour.
+
+### Removing Kubeconfigs
+
+`kbs remove` allows deleting kubeconfigs by name (or labels) from the `kbs` data store.
 
 ## Alternatives
 
