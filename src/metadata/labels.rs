@@ -1,5 +1,5 @@
 use crate::metadata::ConfigMetadata;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use std::{collections::BTreeMap, error::Error};
 
 use clap::ArgMatches;
@@ -23,7 +23,7 @@ pub fn collect_from_args(matches: &ArgMatches, id: &str) -> Result<BTreeMap<Stri
 
     matches
         .get_many::<(String, String)>(id)
-        .ok_or_else(|| anyhow!("failed to parse labels"))?
+        .unwrap_or_default()
         .for_each(|(key, value)| {
             map.insert(key.clone(), value.clone());
         });
