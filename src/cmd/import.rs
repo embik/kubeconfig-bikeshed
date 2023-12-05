@@ -40,7 +40,7 @@ pub fn command() -> Command {
                 .required(false)
                 .num_args(0..)
                 .value_delimiter(',')
-                .value_parser(metadata::labels::parse_key_val::<String, String>),
+                .value_parser(metadata::labels::parse_key_val),
         )
         .arg(
             Arg::new("delete")
@@ -59,7 +59,10 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         .ok_or_else(|| anyhow!("failed to parse kubeconfig argument"))?;
 
     // collect labels from argument into map
-    let labels = labels::collect_from_args(matches, "labels")?;
+    let labels = match matches.contains_id("labels") {
+        true => Some(labels::collect_from_args(matches, "labels")?),
+        false => None,
+    };
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
@@ -113,12 +116,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::info!("imported kubeconfig to {}", target_path.display());
 
     metadata
-        .set(
-            name,
-            metadata::ConfigMetadata {
-                labels: Some(labels),
-            },
-        )
+        .set(name, metadata::ConfigMetadata { labels })
         .write(&metadata_path)?;
 
     log::debug!(

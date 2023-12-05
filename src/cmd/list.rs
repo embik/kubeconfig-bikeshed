@@ -19,7 +19,7 @@ pub fn command() -> Command {
                 .required(false)
                 .num_args(0..)
                 .value_delimiter(',')
-                .value_parser(metadata::labels::parse_key_val::<String, String>),
+                .value_parser(metadata::labels::parse_key_val),
         )
         .arg(
             Arg::new("unset")
