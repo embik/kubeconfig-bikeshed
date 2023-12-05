@@ -13,7 +13,7 @@ pub fn command() -> Command {
         .arg(Arg::new("kubeconfig").value_parser(value_parser!(String)))
         .arg(
             Arg::new("labels")
-                .value_parser(metadata::labels::parse_key_val::<String, String>)
+                .value_parser(metadata::labels::parse_key_val)
                 .num_args(1..)
                 .value_delimiter(','),
         )

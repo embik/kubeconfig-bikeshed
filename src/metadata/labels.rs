@@ -1,21 +1,24 @@
 use crate::metadata::ConfigMetadata;
-use anyhow::{bail, Result};
-use std::{collections::BTreeMap, error::Error};
-
+use anyhow::{anyhow, bail, Result};
 use clap::ArgMatches;
+use std::collections::BTreeMap;
 
 /// Parse a single key-value pair
-pub fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
-where
-    T: std::str::FromStr,
-    T::Err: Error + Send + Sync + 'static,
-    U: std::str::FromStr,
-    U::Err: Error + Send + Sync + 'static,
-{
+pub fn parse_key_val(s: &str) -> Result<(String, String)> {
     let pos = s
         .find('=')
-        .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{s}`"))?;
-    Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
+        .ok_or_else(|| anyhow!("invalid key=value pair: no `=` found in `{s}`"))?;
+
+    let key = &s[..pos];
+    let value = &s[pos + 1..];
+
+    if !is_valid_label_key(key) || !is_valid_rfc_1123_label(value) {
+        return Err(anyhow!(
+            "key or value are not valid RFC 1123 dns-style names"
+        ));
+    }
+
+    Ok((key.to_string(), value.to_string()))
 }
 
 pub fn collect_from_args(matches: &ArgMatches, id: &str) -> Result<BTreeMap<String, String>> {
@@ -23,7 +26,7 @@ pub fn collect_from_args(matches: &ArgMatches, id: &str) -> Result<BTreeMap<Stri
 
     matches
         .get_many::<(String, String)>(id)
-        .unwrap_or_default()
+        .ok_or_else(|| anyhow!("failed to parse labels from argument"))?
         .for_each(|(key, value)| {
             map.insert(key.clone(), value.clone());
         });
@@ -56,5 +59,77 @@ pub fn merge_labels(
             Ok(merged_labels)
         }
         None => Ok(new_labels.clone()),
+    }
+}
+
+// Ensure that a given label key or value is compliant with RFC 1123
+// specifications for DNS subdomains.
+//
+// Validity is given when the given string is:
+// - maximum 253 characters
+// - only lowercase alphanumeric characters, '-' or '.'
+// - starting and ending with an alphanumeric character
+pub fn is_valid_rfc_1123_subdomain(label: &str) -> bool {
+    label.len() < 254
+        && label.chars().all(|b| {
+            (b.is_alphabetic() && b.is_lowercase()) || b.is_numeric() || b == '.' || b == '-'
+        })
+}
+
+// Ensure that a given label key or value is compliant with RFC 1123
+// specifications for DNS labels.
+//
+// Validity is given when the given string is:
+// - maximum 63 characters
+// - only lowercase alphanumeric characters
+// - starting and ending with an alphanumeric character
+pub fn is_valid_rfc_1123_label(label: &str) -> bool {
+    label.len() < 64
+        && label
+            .chars()
+            .all(|b| ((b.is_alphabetic() && b.is_lowercase()) || b.is_numeric()))
+}
+
+pub fn is_valid_label_key(label: &str) -> bool {
+    let (prefix, name) = label.split_at(label.find('/').unwrap_or_else(|| 0) + 1);
+    let prefix = prefix.strip_suffix("/").unwrap_or_else(|| prefix);
+
+    is_valid_rfc_1123_subdomain(prefix) && is_valid_rfc_1123_subdomain(name)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_rfc_1123_subdomains() {
+        for name in &["test", "test.com"] {
+            assert!(is_valid_rfc_1123_subdomain(name), "{name} is not valid");
+        }
+    }
+
+    #[test]
+    fn test_invalid_rfc_1123_subdomains() {
+        for name in &["teSt", "tEst.Com"] {
+            assert!(
+                !is_valid_rfc_1123_subdomain(name),
+                "{} should not valid",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_valid_label_keys() {
+        for key in &["test", "test.com", "test.com/key"] {
+            assert!(is_valid_label_key(key), "{key} is not valid");
+        }
+    }
+
+    #[test]
+    fn test_invalid_label_keys() {
+        for key in &["tesT", "test@com", "test+com/key", "1234?"] {
+            assert!(!is_valid_label_key(key), "{key} should not be valid");
+        }
     }
 }
