@@ -153,6 +153,56 @@ fn test_kbs_import_with_labels() {
 }
 
 #[test]
+fn test_kbs_import_with_short_flag() {
+    let temp_dir = tempdir().unwrap();
+    let base_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/files");
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "import",
+            base_dir.join("test.kubeconfig").to_str().unwrap(),
+            "-s",
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .assert()
+        .success()
+        .stdout(is_match("^kubernetes\n$").unwrap());
+}
+
+#[test]
+fn test_kbs_import_with_short_flag_localhost() {
+    let temp_dir = tempdir().unwrap();
+    let base_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/files");
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "import",
+            base_dir.join("localhost.kubeconfig").to_str().unwrap(),
+            "-s",
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .assert()
+        .success()
+        .stdout(is_match("^localhost\n$").unwrap());
+}
+
+#[test]
 fn test_kbs_list_label_selector() {
     let temp_dir = tempdir().unwrap();
     let base_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/files");

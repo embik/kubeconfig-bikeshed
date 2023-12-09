@@ -51,6 +51,16 @@ pub fn command() -> Command {
                 .action(ArgAction::SetTrue)
                 .value_parser(clap::value_parser!(bool)),
         )
+        .arg(
+            Arg::new("short")
+                .help("Instead of using the FQDN of the server, just use the first part/subdomain")
+                .long("short")
+                .short('s')
+                .required(false)
+                .action(ArgAction::SetTrue)
+                .value_parser(clap::value_parser!(bool))
+                .conflicts_with("name"),
+        )
 }
 
 pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
@@ -88,7 +98,11 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             let host = url
                 .host_str()
                 .ok_or_else(|| anyhow!("failed to parse host from server URL"))?;
-            host.to_string()
+
+            match matches.get_flag("short") {
+                true => host.split_once('.').unwrap_or((&host, "")).0.to_string(),
+                false => host.to_string(),
+            }
         }
     };
 
