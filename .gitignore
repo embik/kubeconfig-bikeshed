@@ -9,7 +9,5 @@
 # Added by cargo
 /target
 
-# (Test) kubeconfigs
-*.kubeconfig
 .idea/
 .env

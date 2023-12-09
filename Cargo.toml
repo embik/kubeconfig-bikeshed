@@ -25,6 +25,10 @@ exclude = [
 path = "src/main.rs"
 name = "kbs"
 
+[[test]]
+name = "integration"
+path = "tests/tests.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -41,3 +45,8 @@ url = "2.4.1"
 home = "0.5.5"
 clap_complete = "4.4.4"
 anyhow = "1.0.75"
+
+[dev-dependencies]
+assert_cmd = "2.0.12"
+predicates = "3.0.4"
+tempfile = "3.8.1"
