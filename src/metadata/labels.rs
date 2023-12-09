@@ -34,6 +34,25 @@ pub fn collect_from_args(matches: &ArgMatches, id: &str) -> Result<BTreeMap<Stri
     Ok(map)
 }
 
+pub fn matches_labels(
+    labels: &BTreeMap<String, String>,
+    selectors: &Option<Vec<&(String, String)>>,
+) -> bool {
+    if let Some(ref selector) = selectors {
+        for label in selector.iter() {
+            let (key, value) = label;
+            let opt = labels.get(key);
+            if !(opt.is_some() && opt.unwrap() == value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    return true;
+}
+
 pub fn merge_labels(
     metadata: &ConfigMetadata,
     new_labels: &BTreeMap<String, String>,

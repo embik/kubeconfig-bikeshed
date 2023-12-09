@@ -87,18 +87,8 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             None => BTreeMap::new(),
         };
 
-        if let Some(ref selector) = selectors {
-            let mut matched = true;
-
-            for label in selector.iter() {
-                let (key, value) = label;
-                let opt = labels.get(key);
-                matched = opt.is_some() && opt.unwrap() == value;
-            }
-
-            if !matched {
-                continue;
-            }
+        if !metadata::labels::matches_labels(&labels, &selectors) {
+            continue;
         }
 
         log::debug!("found a kubeconfig at {}", file.display());
