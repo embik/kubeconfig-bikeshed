@@ -1,6 +1,6 @@
 use anyhow::Result;
-use clap::{Arg, ArgMatches, Command};
-use std::path::Path;
+use clap::{value_parser, Arg, ArgMatches, Command};
+use std::path::{Path, PathBuf};
 
 pub mod import;
 pub mod label;
@@ -22,6 +22,14 @@ pub fn cli() -> Command {
                 .action(clap::ArgAction::SetTrue)
                 .global(true)
                 .help("Enable verbose (debug) logging"),
+        )
+        .arg(
+            Arg::new("config-dir")
+                .long("config-dir")
+                .short('c')
+                .global(true)
+                .value_parser(value_parser!(PathBuf))
+                .help("Directory to use for configuration and data store. Defaults to ~/.config/kbs or $XDG_CONFIG_DIR/kbs")
         )
         .subcommands([
             import::command(),

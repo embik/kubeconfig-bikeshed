@@ -7,7 +7,11 @@ mod metadata;
 
 fn main() -> Result<()> {
     let matches = cmd::cli().get_matches();
-    let config_dir = config::get_config_dir()?;
+    let config_dir = match matches.get_one::<std::path::PathBuf>("config-dir") {
+        Some(path) => path.clone(),
+        None => config::get_config_dir()?,
+    };
+
     setup_logger(matches.get_flag("verbose"))?;
 
     log::debug!("using {} as configuration directory", config_dir.display());
