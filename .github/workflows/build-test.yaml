@@ -1,4 +1,4 @@
-name: Rust
+name: Run Tests
 
 on:
   push:
@@ -11,10 +11,15 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: macos-latest
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Check out
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up cargo cache
       uses: actions/cache@v3
       continue-on-error: false
@@ -25,8 +30,8 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/            
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-cargo-
+        key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ matrix.os }}-cargo-
     - name: Build
       run: cargo build --verbose
     - name: Run tests

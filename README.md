@@ -22,7 +22,7 @@ kubeconfig-bikeshed can be installed as a standalone binary called `kbs`. Option
 
 ### Options
 
-`kbs` can currently be installed via [Homebrew](https://brew.sh) or `cargo`.
+`kbs` can currently be installed via [Homebrew](https://brew.sh), `cargo` or downloaded from the [releases page](https://github.com/embik/kubeconfig-bikeshed/releases).
 
 #### Homebrew
 
