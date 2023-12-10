@@ -17,7 +17,6 @@ pub fn command() -> Command {
                 .long("selector")
                 .short('l')
                 .required(false)
-                .num_args(0..)
                 .value_delimiter(',')
                 .value_parser(metadata::labels::parse_key_val),
         )

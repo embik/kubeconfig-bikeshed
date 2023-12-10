@@ -14,7 +14,7 @@ pub fn command() -> Command {
         .about("Remove kubeconfig from data store")
         .arg(Arg::new("kubeconfig").value_parser(value_parser!(String)))
         .arg(
-            Arg::new("labels")
+            Arg::new("selectors")
                 .help("Selector (label query) to filter on. Supports key=value comma-separated values")
                 .long("selector")
                 .short('l')
@@ -23,7 +23,7 @@ pub fn command() -> Command {
                 .value_parser(metadata::labels::parse_key_val),
         )
         .group(ArgGroup::new("target")
-               .args(["kubeconfig", "labels"])
+               .args(["kubeconfig", "selectors"])
                .required(true))
         .arg_required_else_help(true)
 }
@@ -39,9 +39,9 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         Err(err) => bail!(err),
     };
 
-    if matches.contains_id("labels") {
+    if matches.contains_id("selectors") {
         let selectors = matches
-            .get_many::<(String, String)>("labels")
+            .get_many::<(String, String)>("selectors")
             .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
 
         metadata.kubeconfigs.iter().for_each(|k| {

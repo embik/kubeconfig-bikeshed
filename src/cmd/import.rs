@@ -38,7 +38,6 @@ pub fn command() -> Command {
                 .long("set-labels")
                 .short('l')
                 .required(false)
-                .num_args(0..)
                 .value_delimiter(',')
                 .value_parser(metadata::labels::parse_key_val),
         )
