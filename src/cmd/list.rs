@@ -17,7 +17,6 @@ pub fn command() -> Command {
                 .long("selector")
                 .short('l')
                 .required(false)
-                .num_args(0..)
                 .value_delimiter(',')
                 .value_parser(metadata::labels::parse_key_val),
         )
@@ -68,9 +67,11 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         println!("{0: <25}\t{1: <25}", "NAME", "LABELS");
     }
 
-    let files = fs::read_dir(config_dir)?;
+    let mut files: Vec<_> = fs::read_dir(config_dir)?.map(|r| r.unwrap()).collect();
+    files.sort_by_key(|f| f.path());
+
     for file in files {
-        let file = file?.path();
+        let file = file.path();
 
         if !is_kubeconfig(&file) {
             continue;
@@ -87,18 +88,8 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             None => BTreeMap::new(),
         };
 
-        if let Some(ref selector) = selectors {
-            let mut matched = true;
-
-            for label in selector.iter() {
-                let (key, value) = label;
-                let opt = labels.get(key);
-                matched = opt.is_some() && opt.unwrap() == value;
-            }
-
-            if !matched {
-                continue;
-            }
+        if !metadata::labels::matches_labels(&labels, &selectors) {
+            continue;
         }
 
         log::debug!("found a kubeconfig at {}", file.display());

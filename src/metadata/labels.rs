@@ -12,10 +12,8 @@ pub fn parse_key_val(s: &str) -> Result<(String, String)> {
     let key = &s[..pos];
     let value = &s[pos + 1..];
 
-    if !is_valid_label_key(key) || !is_valid_rfc_1123_label(value) {
-        return Err(anyhow!(
-            "key or value are not valid RFC 1123 dns-style names"
-        ));
+    if !is_valid_label_key(key) || !is_valid_label_value(value) {
+        return Err(anyhow!("key or value are not valid RFC 1123 dns-style"));
     }
 
     Ok((key.to_string(), value.to_string()))
@@ -32,6 +30,25 @@ pub fn collect_from_args(matches: &ArgMatches, id: &str) -> Result<BTreeMap<Stri
         });
 
     Ok(map)
+}
+
+pub fn matches_labels(
+    labels: &BTreeMap<String, String>,
+    selectors: &Option<Vec<&(String, String)>>,
+) -> bool {
+    if let Some(ref selector) = selectors {
+        for label in selector.iter() {
+            let (key, value) = label;
+            let opt = labels.get(key);
+            if !(opt.is_some() && opt.unwrap() == value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    return true;
 }
 
 pub fn merge_labels(
@@ -76,25 +93,22 @@ pub fn is_valid_rfc_1123_subdomain(label: &str) -> bool {
         })
 }
 
-// Ensure that a given label key or value is compliant with RFC 1123
-// specifications for DNS labels.
-//
-// Validity is given when the given string is:
-// - maximum 63 characters
-// - only lowercase alphanumeric characters
-// - starting and ending with an alphanumeric character
-pub fn is_valid_rfc_1123_label(label: &str) -> bool {
-    label.len() < 64
-        && label
-            .chars()
-            .all(|b| ((b.is_alphabetic() && b.is_lowercase()) || b.is_numeric()))
-}
-
 pub fn is_valid_label_key(label: &str) -> bool {
     let (prefix, name) = label.split_at(label.find('/').unwrap_or_else(|| 0) + 1);
     let prefix = prefix.strip_suffix("/").unwrap_or_else(|| prefix);
 
     is_valid_rfc_1123_subdomain(prefix) && is_valid_rfc_1123_subdomain(name)
+}
+
+pub fn is_valid_label_value(value: &str) -> bool {
+    value.len() < 64
+        && value.chars().all(|b| {
+            (b.is_alphabetic() && b.is_lowercase())
+                || b.is_numeric()
+                || b == '.'
+                || b == '-'
+                || b == '_'
+        })
 }
 
 #[cfg(test)]
@@ -103,7 +117,7 @@ mod tests {
 
     #[test]
     fn test_valid_rfc_1123_subdomains() {
-        for name in &["test", "test.com"] {
+        for name in &["test", "test.com", "test-domain"] {
             assert!(is_valid_rfc_1123_subdomain(name), "{name} is not valid");
         }
     }
@@ -121,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_valid_label_keys() {
-        for key in &["test", "test.com", "test.com/key"] {
+        for key in &["test", "test.com", "test.com/key", "test-key"] {
             assert!(is_valid_label_key(key), "{key} is not valid");
         }
     }
@@ -130,6 +144,20 @@ mod tests {
     fn test_invalid_label_keys() {
         for key in &["tesT", "test@com", "test+com/key", "1234?"] {
             assert!(!is_valid_label_key(key), "{key} should not be valid");
+        }
+    }
+
+    #[test]
+    fn test_valid_label_values() {
+        for value in &["test", "test-value", "test_value"] {
+            assert!(is_valid_label_value(value), "{value} is not valid");
+        }
+    }
+
+    #[test]
+    fn test_invalid_label_values() {
+        for value in &["tesT", "test$value", "test_Value", "test/value"] {
+            assert!(!is_valid_label_value(value), "{value} should not be valid");
         }
     }
 }
