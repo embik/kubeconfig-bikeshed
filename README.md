@@ -94,35 +94,30 @@ Commands:
   shell    Print various shell related scripts [aliases: sh]
   remove   Remove kubeconfig from data store [aliases: rm, delete]
   version  Print version [aliases: v]
-  label    Manage labels on kubeconfigs [aliases: l]
+  label    Manage labels on kubeconfigs in the data store [aliases: l]
   help     Print this message or the help of the given subcommand(s)
 
 Options:
-  -v, --verbose  Enable verbose (debug) logging
-  -h, --help     Print help
+  -v, --verbose                  Enable verbose (debug) logging
+  -c, --config-dir <config-dir>  Directory to use for configuration and data store. Defaults to ~/.config/kbs or $XDG_CONFIG_DIR/kbs
+  -h, --help                     Print help
 ```
 
 ### Importing Kubeconfigs
 
 `kbs import` allows to _import_ a kubeconfig already existing on the local filesystem (e.g. because it was downloaded via a third-party tool or a web interface) into the kbs "data store".
 
-The command takes a couple of flags to alter behaviour of the import process:
-
-- `--name` / `-n`: allows setting a name override that is used for kubeconfig (context) name. This should still be a valid DNS-style name.
-- `--delete` / `-d`: deletes the original kubeconfig after importing it into the data store (e.g. to clean up `~/Downloads`).
-- `--set-labels` / `-l`: allows setting `key=value` pairs as labels on the imported kubeconfig. Multiple labels can be passed when separated by comma.
+The command takes a couple of flags to alter behaviour of the import process. When a kubeconfig has multiple severs configured, passing a `--name` might be necessary as `kbs` cannot determine a name automatically.
 
 ### Updating Kubeconfig Labels
 
-Currently, `kbs` only supports updating kubeconfig labels.
-
-`kbs label` allows setting new labels on a kubeconfig identified by name. Labels can be passed as `key=value` pairs, separated by comma. Existing labels do not get removed unless `key-` is part of the passed labels.
+`kbs label` allows setting new labels or updating existing labels on a kubeconfig identified by name or by label selector. Labels can be passed as `key=value` pairs, separated by comma.
 
 Existing label values can only be updated if `--overwrite` is set, mimicking `kubectl` behaviour.
 
 ### Removing Kubeconfigs
 
-`kbs remove` allows deleting kubeconfigs by name (or labels) from the `kbs` data store.
+`kbs remove` allows deleting kubeconfigs by name (or label selector) from the `kbs` data store.
 
 ## Alternatives
 
