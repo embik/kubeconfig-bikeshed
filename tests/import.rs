@@ -181,3 +181,40 @@ fn test_kbs_import_with_short_flag_localhost() {
         .success()
         .stdout(is_match("^localhost\n$").unwrap());
 }
+
+#[test]
+fn test_kbs_import_mixed_kubeconfig() {
+    let temp_dir = tempdir().unwrap();
+    let base_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/files");
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "import",
+            base_dir.join("mixed.kubeconfig").to_str().unwrap(),
+        ])
+        .assert()
+        .failure();
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "import",
+            base_dir.join("mixed.kubeconfig").to_str().unwrap(),
+            "--name",
+            "kubernetes.embik.me",
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .assert()
+        .success()
+        .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
+}

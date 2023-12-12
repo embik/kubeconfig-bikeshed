@@ -9,7 +9,6 @@ use std::{
     io::BufWriter,
     path::{Path, PathBuf},
 };
-use url::Url;
 
 pub const NAME: &str = "import";
 
@@ -92,11 +91,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         Some(str) => str.clone(),
         None => {
             log::debug!("no name passed via flag, reading it from kubeconfig server URL");
-            let hostname = kubeconfig::get_hostname(&kubeconfig)?;
-            let url = Url::parse(hostname.as_str())?;
-            let host = url
-                .host_str()
-                .ok_or_else(|| anyhow!("failed to parse host from server URL"))?;
+            let host = kubeconfig::get_hostname(&kubeconfig)?;
 
             match matches.get_flag("short") {
                 true => host.split_once('.').unwrap_or((&host, "")).0.to_string(),

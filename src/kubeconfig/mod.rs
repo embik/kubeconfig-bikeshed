@@ -1,6 +1,7 @@
 use anyhow::{anyhow, bail, Result};
 use kube::config::Kubeconfig;
 use std::{fs::File, path::Path};
+use url::Url;
 
 #[cfg(test)]
 mod tests;
@@ -13,29 +14,34 @@ pub fn get(file: &Path) -> Result<Kubeconfig> {
         Err(err) => bail!(err),
     };
 
-    if !is_valid(&kubeconfig) {
-        bail!("kubeconfig structure is not supported yet");
-    }
-
     Ok(kubeconfig)
 }
 
-fn is_valid(kubeconfig: &Kubeconfig) -> bool {
-    kubeconfig.auth_infos.len() == 1 && kubeconfig.clusters.len() == 1
-}
-
 pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String> {
-    Ok(kubeconfig
-        .clusters
-        .first()
-        .ok_or_else(|| anyhow!("could not get first cluster from kubeconfig"))?
-        .cluster
-        .as_ref()
-        .ok_or_else(|| anyhow!("could not get cluster from kubeconfig"))?
-        .server
-        .as_ref()
-        .ok_or_else(|| anyhow!("could not get server address from cluster"))?
-        .to_string())
+    let mut urls: Vec<String> = vec![];
+    for cluster in kubeconfig.clusters.iter() {
+        let url = cluster
+            .cluster
+            .as_ref()
+            .ok_or(anyhow!("could not find cluster field in kubeconfig"))?
+            .server
+            .as_ref()
+            .ok_or(anyhow!("could not find server field in kubeconfig"))?
+            .to_string();
+        let url = Url::parse(&url)?;
+        let host = url
+            .host_str()
+            .ok_or_else(|| anyhow!("failed to parse host from server URL"))?;
+        urls.push(host.to_string());
+    }
+
+    urls.dedup();
+
+    match urls.len() {
+        0 => Err(anyhow!("could not find any server URL in kubeconfig")),
+        1 => urls.first().ok_or(anyhow!("")).cloned(),
+        _ => Err(anyhow!("kubeconfig has more than one server defined")),
+    }
 }
 
 pub fn rename_context(kubeconfig: &Kubeconfig, context_name: &str) -> Result<Kubeconfig> {
