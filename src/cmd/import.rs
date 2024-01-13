@@ -6,7 +6,7 @@ use std::fs::{self};
 use std::os::unix::fs::PermissionsExt;
 use std::{
     fs::File,
-    io::BufWriter,
+    io::{stdin, BufReader, BufWriter},
     path::{Path, PathBuf},
 };
 
@@ -19,7 +19,7 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
         .arg(
             Arg::new("kubeconfig")
-                .help("kubeconfig to import")
+                .help("kubeconfig to import. Use '-' to read from stdin")
                 .value_parser(value_parser!(PathBuf)),
         )
         .arg(
@@ -83,7 +83,21 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         Err(err) => bail!(err),
     };
 
-    let kubeconfig = kubeconfig::get(kubeconfig_path)?;
+    log::debug!(
+        "trying to import {}",
+        kubeconfig_path.to_str().unwrap_or_default()
+    );
+
+    let kubeconfig = match kubeconfig_path.to_str().is_some_and(|x| x == "-") {
+        false => kubeconfig::get(kubeconfig_path)?,
+        true => {
+            let reader = BufReader::new(stdin().lock());
+            match serde_yaml::from_reader(reader) {
+                Ok(kubeconfig) => kubeconfig,
+                Err(err) => bail!(err),
+            }
+        }
+    };
 
     // read the name from the command line flag; if it's not set,
     // extract the hostname and use that as name.
