@@ -1,5 +1,6 @@
 use crate::kubeconfig;
 use crate::metadata::{self, Metadata};
+use crate::Error;
 use anyhow::Result;
 use anyhow::{anyhow, bail};
 use clap::{value_parser, Arg, ArgGroup, ArgMatches, Command};
@@ -35,7 +36,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::debug!("loading metadata from {}", metadata_path.display());
     let mut metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => Metadata::new(),
+        Err(Error::IO(err)) if err.kind() == std::io::ErrorKind::NotFound => Metadata::new(),
         Err(err) => bail!(err),
     };
 

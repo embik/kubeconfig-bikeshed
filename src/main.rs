@@ -2,8 +2,11 @@ use anyhow::Result;
 
 mod cmd;
 mod config;
+mod error;
 mod kubeconfig;
 mod metadata;
+
+pub use error::Error;
 
 fn main() -> Result<()> {
     let matches = cmd::cli().get_matches();

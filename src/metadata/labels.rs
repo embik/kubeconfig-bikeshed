@@ -1,30 +1,35 @@
 use crate::metadata::ConfigMetadata;
-use anyhow::{anyhow, bail, Result};
+use crate::Error;
 use clap::ArgMatches;
 use std::collections::BTreeMap;
 
 /// Parse a single key-value pair
-pub fn parse_key_val(s: &str) -> Result<(String, String)> {
+pub fn parse_key_val(s: &str) -> Result<(String, String), Error> {
     let pos = s
         .find('=')
-        .ok_or_else(|| anyhow!("invalid key=value pair: no `=` found in `{s}`"))?;
+        .ok_or_else(|| Error::Message(format!("invalid key=value pair: no `=` found in `{s}`")))?;
 
     let key = &s[..pos];
     let value = &s[pos + 1..];
 
     if !is_valid_label_key(key) || !is_valid_label_value(value) {
-        return Err(anyhow!("key or value are not valid RFC 1123 dns-style"));
+        return Err(Error::Message(
+            "key or value are not valid RFC 1123 dns-style".to_string(),
+        ));
     }
 
     Ok((key.to_string(), value.to_string()))
 }
 
-pub fn collect_from_args(matches: &ArgMatches, id: &str) -> Result<BTreeMap<String, String>> {
+pub fn collect_from_args(
+    matches: &ArgMatches,
+    id: &str,
+) -> Result<BTreeMap<String, String>, Error> {
     let mut map = BTreeMap::new();
 
     matches
         .get_many::<(String, String)>(id)
-        .ok_or_else(|| anyhow!("failed to parse labels from argument"))?
+        .ok_or_else(|| Error::Message("failed to parse labels from argument".to_string()))?
         .for_each(|(key, value)| {
             map.insert(key.clone(), value.clone());
         });
@@ -55,7 +60,7 @@ pub fn merge_labels(
     metadata: &ConfigMetadata,
     new_labels: &BTreeMap<String, String>,
     overwrite: bool,
-) -> Result<BTreeMap<String, String>> {
+) -> Result<BTreeMap<String, String>, Error> {
     match &metadata.labels {
         Some(existing_labels) => {
             let mut merged_labels = existing_labels.clone();
@@ -63,12 +68,10 @@ pub fn merge_labels(
             for (key, value) in new_labels.iter() {
                 if let Some(old_value) = merged_labels.insert(key.to_string(), value.to_string()) {
                     if !old_value.eq(value) && !overwrite {
-                        bail!(
+                        return Err(Error::Message(format!(
                             "cannot set key '{}' to value '{}', is '{}' already",
-                            key,
-                            value,
-                            old_value
-                        );
+                            key, value, old_value
+                        )));
                     }
                 }
             }

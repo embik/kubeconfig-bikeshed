@@ -1,5 +1,6 @@
 use crate::kubeconfig;
 use crate::metadata::{self, labels, Metadata};
+use crate::Error;
 use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::fs::{self};
@@ -76,7 +77,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => {
+        Err(Error::IO(err)) if err.kind() == std::io::ErrorKind::NotFound => {
             log::debug!("failed to find metadata file, creating empty metadata store");
             Metadata::new()
         }
