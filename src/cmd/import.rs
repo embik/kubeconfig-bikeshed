@@ -1,14 +1,9 @@
-use crate::kubeconfig;
 use crate::metadata::{self, labels, Metadata};
+use crate::{kubeconfig, Error};
 use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::fs::{self};
-use std::os::unix::fs::PermissionsExt;
-use std::{
-    fs::File,
-    io::{stdin, BufReader, BufWriter},
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 pub const NAME: &str = "import";
 
@@ -19,7 +14,7 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
         .arg(
             Arg::new("kubeconfig")
-                .help("kubeconfig to import. Use '-' to read from stdin")
+                .help("kubeconfig to import. Use a directory to try importing all files in that directory or use '-' to read from stdin")
                 .value_parser(value_parser!(PathBuf)),
         )
         .arg(
@@ -42,7 +37,7 @@ pub fn command() -> Command {
         )
         .arg(
             Arg::new("delete")
-                .help("Delete original kubeconfig file after import")
+                .help("Delete original kubeconfig file after import. This flag has no effect when importing a directory")
                 .long("delete")
                 .short('d')
                 .required(false)
@@ -74,82 +69,61 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
-    let metadata = match Metadata::from_file(&metadata_path) {
+    let mut metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => {
+        Err(Error::IO(err)) if err.kind() == std::io::ErrorKind::NotFound => {
             log::debug!("failed to find metadata file, creating empty metadata store");
             Metadata::new()
         }
         Err(err) => bail!(err),
     };
 
-    log::debug!(
-        "trying to import {}",
-        kubeconfig_path.to_str().unwrap_or_default()
-    );
+    if kubeconfig_path.is_file() {
+        // run import logic.
+        let name = kubeconfig::import(
+            config_dir,
+            kubeconfig_path,
+            matches.get_one::<String>("name"),
+            matches.get_flag("short"),
+        )?;
 
-    let kubeconfig = match kubeconfig_path.to_str().is_some_and(|x| x == "-") {
-        false => kubeconfig::get(kubeconfig_path)?,
-        true => {
-            let reader = BufReader::new(stdin().lock());
-            match serde_yaml::from_reader(reader) {
-                Ok(kubeconfig) => kubeconfig,
-                Err(err) => bail!(err),
-            }
+        metadata = metadata.set(name, metadata::ConfigMetadata { labels });
+
+        if matches.get_flag("delete") {
+            fs::remove_file(kubeconfig_path)?;
+            log::debug!("deleted {}", kubeconfig_path.display());
         }
-    };
+    } else if kubeconfig_path.is_dir() {
+        let files = fs::read_dir(kubeconfig_path)?;
+        for file in files {
+            let entry = file?;
+            let path = entry.path();
+            let name = kubeconfig::import(config_dir, &path, None, matches.get_flag("short"));
 
-    // read the name from the command line flag; if it's not set,
-    // extract the hostname and use that as name.
-    let name: String = match matches.get_one::<String>("name") {
-        Some(str) => str.clone(),
-        None => {
-            log::debug!("no name passed via flag, reading it from kubeconfig server URL");
-            let host = kubeconfig::get_hostname(&kubeconfig)?;
-
-            match matches.get_flag("short") {
-                true => host.split_once('.').unwrap_or((&host, "")).0.to_string(),
-                false => host.to_string(),
+            if let Err(err) = name {
+                log::warn!(
+                    "failed to import {}: {}",
+                    path.to_str().unwrap_or("<couldn't unwrap path>"),
+                    err
+                );
+                continue;
             }
+
+            metadata = metadata.set(
+                name.unwrap(),
+                metadata::ConfigMetadata {
+                    labels: labels.clone(),
+                },
+            );
         }
-    };
-
-    log::debug!("using {} as name for kubeconfig file and context", name);
-
-    let target_path = config_dir.join(format!("{}.kubeconfig", name));
-
-    // TODO: prompt the user for confirmation to override instead of
-    // throwing an error.
-    if target_path.exists() {
-        bail!(
-            "kubeconfig {} already exists at {}",
-            name,
-            target_path.display()
-        );
     }
 
-    let kubeconfig = kubeconfig::rename_context(&kubeconfig, &name)?;
-
-    let file = File::create(&target_path)?;
-    file.set_permissions(fs::Permissions::from_mode(0o600))?;
-    let file = BufWriter::new(file);
-    serde_yaml::to_writer(file, &kubeconfig)?;
-
-    log::info!("imported kubeconfig to {}", target_path.display());
-
-    metadata
-        .set(name, metadata::ConfigMetadata { labels })
-        .write(&metadata_path)?;
+    metadata.write(&metadata_path)?;
 
     log::debug!(
         "wrote metadata database update to {}",
         metadata_path.display()
     );
-
-    if matches.get_flag("delete") {
-        fs::remove_file(kubeconfig_path)?;
-        log::debug!("deleted {}", kubeconfig_path.display());
-    }
 
     Ok(())
 }

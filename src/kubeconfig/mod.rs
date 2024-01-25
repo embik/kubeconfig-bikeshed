@@ -1,56 +1,68 @@
-use anyhow::{anyhow, bail, Result};
+use crate::Error;
 use kube::config::Kubeconfig;
 use std::{fs::File, path::Path};
 use url::Url;
 
+mod import;
+
+pub use import::import;
+
 #[cfg(test)]
 mod tests;
 
-pub fn get(file: &Path) -> Result<Kubeconfig> {
+pub fn get(file: &Path) -> Result<Kubeconfig, Error> {
     let kubeconfig_file = File::open(file)?;
 
     let kubeconfig = match serde_yaml::from_reader::<File, Kubeconfig>(kubeconfig_file) {
         Ok(kubeconfig) => kubeconfig,
-        Err(err) => bail!(err),
+        Err(err) => return Err(Error::YAML(err)),
     };
 
     Ok(kubeconfig)
 }
 
-pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String> {
+pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String, Error> {
     let mut urls: Vec<String> = vec![];
     for cluster in kubeconfig.clusters.iter() {
         let url = cluster
             .cluster
             .as_ref()
-            .ok_or(anyhow!("could not find cluster field in kubeconfig"))?
+            .ok_or(Error::Message(
+                "could not find cluster field in kubeconfig".to_string(),
+            ))?
             .server
             .as_ref()
-            .ok_or(anyhow!("could not find server field in kubeconfig"))?
+            .ok_or(Error::Message(
+                "could not find server field in kubeconfig".to_string(),
+            ))?
             .to_string();
         let url = Url::parse(&url)?;
         let host = url
             .host_str()
-            .ok_or_else(|| anyhow!("failed to parse host from server URL"))?;
+            .ok_or_else(|| Error::Message("failed to parse host from server URL".to_string()))?;
         urls.push(host.to_string());
     }
 
     urls.dedup();
 
     match urls.len() {
-        0 => Err(anyhow!("could not find any server URL in kubeconfig")),
-        1 => urls.first().ok_or(anyhow!("")).cloned(),
-        _ => Err(anyhow!("kubeconfig has more than one server defined")),
+        0 => Err(Error::Message(
+            "could not find any server URL in kubeconfig".to_string(),
+        )),
+        1 => urls.first().ok_or(Error::Message("".to_string())).cloned(),
+        _ => Err(Error::Message(
+            "kubeconfig has more than one server defined".to_string(),
+        )),
     }
 }
 
-pub fn rename_context(kubeconfig: &Kubeconfig, context_name: &str) -> Result<Kubeconfig> {
+pub fn rename_context(kubeconfig: &Kubeconfig, context_name: &str) -> Result<Kubeconfig, Error> {
     let mut new_kubeconfig = kubeconfig.clone();
 
     let current_context = kubeconfig
         .current_context
         .as_ref()
-        .ok_or_else(|| anyhow!("cannot get current context"))?;
+        .ok_or_else(|| Error::Message("cannot get current context".to_string()))?;
 
     let mut contexts = kubeconfig.contexts.clone();
     for context in &mut contexts {

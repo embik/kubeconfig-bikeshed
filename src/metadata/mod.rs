@@ -1,11 +1,8 @@
-use anyhow::{anyhow, Result};
+use crate::Error;
 use serde::{Deserialize, Serialize};
 use std::collections::btree_map::BTreeMap;
 use std::{fs::File, path::Path, path::PathBuf};
 
-pub use errors::Error;
-
-mod errors;
 pub mod labels;
 
 pub const FILE: &str = "metadata.json";
@@ -29,22 +26,25 @@ impl Metadata {
     pub fn from_file(file: &Path) -> Result<Metadata, Error> {
         let metadata_file = match File::open(file) {
             Ok(file) => file,
-            Err(err) => return Err(Error::IO(err.to_string(), err.kind())),
+            Err(err) => return Err(Error::IO(err)),
         };
 
         let metadata = match serde_json::from_reader::<File, Metadata>(metadata_file) {
             Ok(metadata) => metadata,
-            Err(err) => return Err(Error::Deserialize(err.to_string())),
+            Err(err) => return Err(Error::JSON(err)),
         };
 
         if metadata.version != VERSION {
-            return Err(Error::UnknownVersion(metadata.version));
+            return Err(Error::Message(format!(
+                "unknown metadata version: {}",
+                metadata.version
+            )));
         }
 
         Ok(metadata)
     }
 
-    pub fn write(&self, file: &Path) -> Result<()> {
+    pub fn write(&self, file: &Path) -> Result<(), Error> {
         let metadata_file = match File::create(file) {
             Ok(file) => file,
             Err(_) => std::fs::OpenOptions::new().write(true).open(file)?,
@@ -52,7 +52,7 @@ impl Metadata {
 
         match serde_json::to_writer::<File, Metadata>(metadata_file, self) {
             Ok(_) => Ok(()),
-            Err(err) => Err(anyhow!(err)),
+            Err(err) => Err(Error::JSON(err)),
         }
     }
 

@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use crate::Error;
 use clap::builder::PossibleValue;
 use std::{
     env, fs, io,
@@ -9,14 +9,15 @@ use std::{
 mod tests;
 
 const ACTIVE_FILE_NAME: &str = "active";
+const XDG_CONFIG_HOME: &str = "XDG_CONFIG_HOME";
 
-pub fn get_config_dir() -> Result<PathBuf> {
+pub fn get_config_dir() -> Result<PathBuf, Error> {
     // attempt to respect XDG_CONFIG_HOME, fall back to $HOME/.config if it's not
     // set.
-    let base = match env::var("XDG_CONFIG_HOME") {
+    let base = match env::var(XDG_CONFIG_HOME) {
         Ok(s) => s.into(),
         Err(_) => home::home_dir()
-            .ok_or_else(|| anyhow!("could not determine home directory"))?
+            .ok_or_else(|| Error::Message("could not determine home directory".to_string()))?
             .join(".config"),
     };
 

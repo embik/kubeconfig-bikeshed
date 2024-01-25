@@ -1,4 +1,5 @@
 use crate::metadata::{self, labels, ConfigMetadata, Metadata};
+use crate::Error;
 use anyhow::{anyhow, bail, Result};
 use clap::{value_parser, Arg, ArgAction, ArgGroup, ArgMatches, Command};
 use std::path::Path;
@@ -50,7 +51,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::debug!("loading metadata from {}", metadata_path.display());
     let mut metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
-        Err(metadata::Error::IO(_, std::io::ErrorKind::NotFound)) => {
+        Err(Error::IO(err)) if err.kind() == std::io::ErrorKind::NotFound => {
             log::debug!("failed to find metadata file, creating empty metadata store");
             Metadata::new()
         }
