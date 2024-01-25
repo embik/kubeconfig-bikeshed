@@ -14,7 +14,7 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
         .arg(
             Arg::new("kubeconfig")
-                .help("kubeconfig to import. Use '-' to read from stdin")
+                .help("kubeconfig to import. Use a directory to try importing all files in that directory or use '-' to read from stdin")
                 .value_parser(value_parser!(PathBuf)),
         )
         .arg(
@@ -37,7 +37,7 @@ pub fn command() -> Command {
         )
         .arg(
             Arg::new("delete")
-                .help("Delete original kubeconfig file after import")
+                .help("Delete original kubeconfig file after import. This flag has no effect when importing a directory")
                 .long("delete")
                 .short('d')
                 .required(false)
@@ -69,7 +69,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
-    let metadata = match Metadata::from_file(&metadata_path) {
+    let mut metadata = match Metadata::from_file(&metadata_path) {
         Ok(metadata) => metadata,
         Err(Error::IO(err)) if err.kind() == std::io::ErrorKind::NotFound => {
             log::debug!("failed to find metadata file, creating empty metadata store");
@@ -78,26 +78,52 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         Err(err) => bail!(err),
     };
 
-    let name = kubeconfig::import(
-        config_dir,
-        kubeconfig_path,
-        matches.get_one::<String>("name"),
-        matches.get_flag("short"),
-    )?;
+    if kubeconfig_path.is_file() {
+        // run import logic.
+        let name = kubeconfig::import(
+            config_dir,
+            kubeconfig_path,
+            matches.get_one::<String>("name"),
+            matches.get_flag("short"),
+        )?;
 
-    metadata
-        .set(name, metadata::ConfigMetadata { labels })
-        .write(&metadata_path)?;
+        metadata = metadata.set(name, metadata::ConfigMetadata { labels });
+
+        if matches.get_flag("delete") {
+            fs::remove_file(kubeconfig_path)?;
+            log::debug!("deleted {}", kubeconfig_path.display());
+        }
+    } else if kubeconfig_path.is_dir() {
+        let files = fs::read_dir(kubeconfig_path)?;
+        for file in files {
+            let entry = file?;
+            let path = entry.path();
+            let name = kubeconfig::import(config_dir, &path, None, matches.get_flag("short"));
+
+            if let Err(err) = name {
+                log::warn!(
+                    "failed to import {}: {}",
+                    path.to_str().unwrap_or("<couldn't unwrap path>"),
+                    err
+                );
+                continue;
+            }
+
+            metadata = metadata.set(
+                name.unwrap(),
+                metadata::ConfigMetadata {
+                    labels: labels.clone(),
+                },
+            );
+        }
+    }
+
+    metadata.write(&metadata_path)?;
 
     log::debug!(
         "wrote metadata database update to {}",
         metadata_path.display()
     );
-
-    if matches.get_flag("delete") {
-        fs::remove_file(kubeconfig_path)?;
-        log::debug!("deleted {}", kubeconfig_path.display());
-    }
 
     Ok(())
 }

@@ -13,6 +13,11 @@ pub fn import(
     name: Option<&String>,
     use_short: bool,
 ) -> Result<String, Error> {
+    log::debug!(
+        "trying to import {}",
+        kubeconfig_path.to_str().unwrap_or_default()
+    );
+
     let kubeconfig = match kubeconfig_path.to_str().is_some_and(|x| x == "-") {
         false => kubeconfig::get(kubeconfig_path)?,
         true => {
