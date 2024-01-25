@@ -3,6 +3,10 @@ use kube::config::Kubeconfig;
 use std::{fs::File, path::Path};
 use url::Url;
 
+mod import;
+
+pub use import::import;
+
 #[cfg(test)]
 mod tests;
 

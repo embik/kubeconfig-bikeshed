@@ -1,6 +1,4 @@
-use crate::kubeconfig;
-use crate::kubeconfig::Error;
-use crate::metadata::Metadata;
+use crate::{kubeconfig, Error};
 use std::fs::{self};
 use std::os::unix::fs::PermissionsExt;
 use std::{
@@ -12,9 +10,9 @@ use std::{
 pub fn import(
     config_dir: &Path,
     kubeconfig_path: &Path,
-    name: Option<String>,
+    name: Option<&String>,
     use_short: bool,
-) -> Result<(String, Metadata), Error> {
+) -> Result<String, Error> {
     let kubeconfig = match kubeconfig_path.to_str().is_some_and(|x| x == "-") {
         false => kubeconfig::get(kubeconfig_path)?,
         true => {
@@ -48,11 +46,11 @@ pub fn import(
     // TODO: prompt the user for confirmation to override instead of
     // throwing an error.
     if target_path.exists() {
-        bail!(
+        return Err(Error::Message(format!(
             "kubeconfig {} already exists at {}",
             name,
             target_path.display()
-        );
+        )));
     }
 
     let kubeconfig = kubeconfig::rename_context(&kubeconfig, &name)?;
@@ -62,5 +60,5 @@ pub fn import(
     let file = BufWriter::new(file);
     serde_yaml::to_writer(file, &kubeconfig)?;
 
-    Ok("")
+    Ok(name)
 }
