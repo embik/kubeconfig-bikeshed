@@ -119,6 +119,14 @@ Existing label values can only be updated if `--overwrite` is set, mimicking `ku
 
 `kbs remove` allows deleting kubeconfigs by name (or label selector) from the `kbs` data store.
 
+### Pruning Kubeconfigs
+
+`kbs prune` is a helpful command in case removing kubeconfigs by hand or label selector proves cumbersome. 
+
+`kbs` will iterate over all kubeconfigs matched by the label selector passed to `kbs prune` (if none is passed, all kubeconfigs will be checked) and attempt to fetch the Kubernetes API server version from the remote server as a way to "ping" it. If that connection fails for whatever reason, `kbs prune` will consider the kubeconfig in question stale.
+
+By default, this command runs in "dry mode", which means it will not delete any kubeconfigs (as this is a destructive action potentially elevated by temporary networking problems). To actually prune kubeconfigs, pass `--dry-run=false` to the command.
+
 ## Alternatives
 
 - [konf-go](https://github.com/SimonTheLeg/konf-go) by my colleague Simon, if you are looking for a more mature solution written in Go.
