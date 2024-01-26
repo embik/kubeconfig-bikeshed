@@ -7,10 +7,10 @@ pub fn list(
     config_dir: &Path,
     metadata: &Metadata,
     selectors: Option<Vec<&(String, String)>>,
-) -> Result<Vec<(String, BTreeMap<String, String>)>, Error> {
-    let mut kubeconfigs: Vec<(String, BTreeMap<String, String>)> = vec![];
+) -> Result<Vec<(String, Option<BTreeMap<String, String>>)>, Error> {
+    let mut kubeconfigs: Vec<(String, Option<BTreeMap<String, String>>)> = vec![];
 
-    let mut files: Vec<_> = fs::read_dir(config_dir)?.map(|r| r.unwrap()).collect();
+    let mut files: Vec<fs::DirEntry> = fs::read_dir(config_dir)?.map(|r| r.unwrap()).collect();
     files.sort_by_key(|f| f.path());
 
     for file in files {
@@ -26,14 +26,19 @@ pub fn list(
             .to_str()
             .ok_or_else(|| Error::Message("cannot convert file path to string".to_string()))?;
 
-        let labels = match metadata.get(name) {
-            Some(m) => m.labels.clone().unwrap_or_default(),
-            None => BTreeMap::new(),
-        };
+        let labels: Option<BTreeMap<String, String>> = match metadata.get(name) {
+            Some(m) => {
+                if !metadata::labels::matches_labels(
+                    &m.labels.clone().unwrap_or_default(),
+                    &selectors,
+                ) {
+                    continue;
+                }
 
-        if !metadata::labels::matches_labels(&labels, &selectors) {
-            continue;
-        }
+                Some(m.labels.clone().unwrap_or_default())
+            }
+            None => None,
+        };
 
         kubeconfigs.push((name.to_string(), labels));
     }

@@ -87,9 +87,14 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn format_labels(map: &BTreeMap<String, String>) -> String {
-    map.iter()
-        .map(|(key, value)| -> String { format!("{key}={value}") })
-        .collect::<Vec<String>>()
-        .join(",")
+fn format_labels(map: &Option<BTreeMap<String, String>>) -> String {
+    if let Some(labels) = map {
+        return labels
+            .iter()
+            .map(|(key, value)| -> String { format!("{key}={value}") })
+            .collect::<Vec<String>>()
+            .join(",");
+    }
+
+    "".to_string()
 }
