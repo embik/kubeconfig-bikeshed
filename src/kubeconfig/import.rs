@@ -19,7 +19,7 @@ pub fn import(
     );
 
     let kubeconfig = match kubeconfig_path.to_str().is_some_and(|x| x == "-") {
-        false => kubeconfig::get(kubeconfig_path)?,
+        false => kubeconfig::get_from_file(kubeconfig_path)?,
         true => {
             let reader = BufReader::new(stdin().lock());
             match serde_yaml::from_reader(reader) {

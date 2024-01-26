@@ -1,6 +1,6 @@
 use crate::Error;
 use kube::config::Kubeconfig;
-use std::{fs::File, path::Path};
+use std::{fs::File, path::Path, path::PathBuf};
 use url::Url;
 
 mod import;
@@ -12,7 +12,7 @@ pub use list::list;
 #[cfg(test)]
 mod tests;
 
-pub fn get(file: &Path) -> Result<Kubeconfig, Error> {
+pub fn get_from_file(file: &Path) -> Result<Kubeconfig, Error> {
     let kubeconfig_file = File::open(file)?;
 
     let kubeconfig = match serde_yaml::from_reader::<File, Kubeconfig>(kubeconfig_file) {
@@ -21,6 +21,12 @@ pub fn get(file: &Path) -> Result<Kubeconfig, Error> {
     };
 
     Ok(kubeconfig)
+}
+
+pub fn get(config_dir: &Path, name: &str) -> Result<(PathBuf, Kubeconfig), Error> {
+    let kubeconfig_path = config_dir.join(format!("{name}.kubeconfig"));
+    let kubeconfig = get_from_file(&kubeconfig_path)?;
+    Ok((kubeconfig_path, kubeconfig))
 }
 
 pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String, Error> {

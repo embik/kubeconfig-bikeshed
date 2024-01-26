@@ -57,7 +57,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
     for (name, _) in removals.iter() {
         let kubeconfig_path = config_dir.join(format!("{name}.kubeconfig"));
-        if kubeconfig::get(&kubeconfig_path).is_ok() {
+        if kubeconfig::get(&config_dir, name).is_ok() {
             fs::remove_file(&kubeconfig_path)?;
             log::info!("removed kubeconfig at {}", kubeconfig_path.display());
             metadata = metadata.remove(name);
