@@ -18,7 +18,11 @@ pub fn command() -> Command {
                 .long("dry-run")
                 .short('n')
                 .required(false)
-                .action(ArgAction::SetTrue)
+                .action(ArgAction::Set)
+                .default_value("true")
+                .default_missing_value("true")
+                .num_args(0..=1)
+                .require_equals(true)
                 .value_parser(clap::value_parser!(bool)),
         )
         .arg(

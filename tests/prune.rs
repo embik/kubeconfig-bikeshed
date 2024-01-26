@@ -27,7 +27,12 @@ fn test_kbs_prune() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "prune"])
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "prune",
+            "--dry-run=false",
+        ])
         .assert()
         .success();
 
@@ -64,12 +69,7 @@ fn test_kbs_prune_dry_run() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
-            "-c",
-            temp_dir.path().to_str().unwrap(),
-            "prune",
-            "--dry-run",
-        ])
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "prune"])
         .assert()
         .success()
         .stderr(is_match("\'kubernetes.embik.me\' should be pruned").unwrap());
@@ -130,6 +130,7 @@ fn test_kbs_prune_label_selector() {
             "prune",
             "-l",
             "location=nonexistent",
+            "--dry-run=false",
         ])
         .assert()
         .success();
