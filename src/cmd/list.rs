@@ -1,7 +1,7 @@
 use crate::config::Output;
 use crate::kubeconfig;
 use crate::metadata::{self, Metadata};
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::collections::btree_map::BTreeMap;
 use std::path::Path;
@@ -57,10 +57,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
-    let metadata = match Metadata::from_file(&metadata_path) {
-        Ok(metadata) => metadata,
-        Err(err) => bail!(err),
-    };
+    let metadata = Metadata::from_file(&metadata_path)?;
 
     let kubeconfigs = kubeconfig::list(config_dir, &metadata, selectors.clone())?;
 
