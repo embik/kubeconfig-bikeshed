@@ -39,8 +39,8 @@ pub fn cli() -> Command {
             remove::command(),
             version::command(),
             label::command(),
+            prune::command(),
             // TODO: add subcommand 'fetch' to fetch kubeconfigs from remote systems.
-            // TODO: add subcommand 'prune' to clean up kubeconfigs with dead server URLs.
         ])
 }
 
@@ -52,6 +52,7 @@ pub fn execute(config_path: &Path, matches: Option<(&str, &ArgMatches)>) -> Resu
         Some((shell::NAME, sub_matches)) => handle(shell::execute(sub_matches)),
         Some((remove::NAME, sub_matches)) => handle(remove::execute(config_path, sub_matches)),
         Some((label::NAME, sub_matches)) => handle(label::execute(config_path, sub_matches)),
+        Some((prune::NAME, sub_matches)) => handle(prune::execute(config_path, sub_matches)),
         Some((version::NAME, _)) => handle(version::execute()),
         _ => {
             log::error!("unknown command");
