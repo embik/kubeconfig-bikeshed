@@ -30,8 +30,6 @@ pub fn command() -> Command {
 }
 
 pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
-    let mut removals: Vec<String> = vec![];
-
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
     let mut metadata = match Metadata::from_file(&metadata_path) {
@@ -40,34 +38,31 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         Err(err) => bail!(err),
     };
 
-    if matches.contains_id("selectors") {
-        let selectors = matches
-            .get_many::<(String, String)>("selectors")
-            .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
+    let removals = match matches.contains_id("selectors") {
+        true => {
+            let selectors = matches
+                .get_many::<(String, String)>("selectors")
+                .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
 
-        metadata.kubeconfigs.iter().for_each(|k| {
-            if let Some(labels) = &k.1.labels {
-                if metadata::labels::matches_labels(&labels, &selectors) {
-                    removals.push(k.0.to_string());
-                }
-            }
-        })
-    } else {
-        let config = matches
-            .get_one::<String>("kubeconfig")
-            .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))?;
+            kubeconfig::list(config_dir, &metadata, selectors.clone())?
+        }
+        false => {
+            let config = matches
+                .get_one::<String>("kubeconfig")
+                .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))?;
 
-        removals.push(config.to_string());
-    }
+            vec![(config.to_string(), None)]
+        }
+    };
 
-    for f in removals.iter() {
-        let kubeconfig_path = config_dir.join(format!("{f}.kubeconfig"));
-        if kubeconfig::get(&kubeconfig_path).is_ok() {
+    for (name, _) in removals.iter() {
+        let kubeconfig_path = config_dir.join(format!("{name}.kubeconfig"));
+        if kubeconfig::get(&config_dir, name).is_ok() {
             fs::remove_file(&kubeconfig_path)?;
             log::info!("removed kubeconfig at {}", kubeconfig_path.display());
-            metadata = metadata.remove(f);
+            metadata = metadata.remove(name);
         } else {
-            return Err(anyhow!("Kubeconfig not found: {:?}", f));
+            return Err(anyhow!("Kubeconfig not found: {:?}", name));
         }
     }
 

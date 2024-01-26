@@ -8,7 +8,8 @@ mod metadata;
 
 pub use error::Error;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let matches = cmd::cli().get_matches();
     let config_dir = match matches.get_one::<std::path::PathBuf>("config-dir") {
         Some(path) => path.clone(),

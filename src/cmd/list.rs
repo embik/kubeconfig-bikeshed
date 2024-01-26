@@ -1,9 +1,10 @@
 use crate::config::Output;
+use crate::kubeconfig;
 use crate::metadata::{self, Metadata};
 use anyhow::{anyhow, Result};
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::collections::btree_map::BTreeMap;
-use std::{fs, path::Path};
+use std::path::Path;
 
 pub const NAME: &str = "list";
 
@@ -56,44 +57,17 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
-    let metadata = match Metadata::from_file(&metadata_path) {
-        Ok(metadata) => metadata,
-        // TODO: don't ignore failing to parse metadata
-        Err(_) => Metadata::new(),
-    };
+    let metadata = Metadata::from_file(&metadata_path)?;
+
+    let kubeconfigs = kubeconfig::list(config_dir, &metadata, selectors.clone())?;
 
     // print table header
     if *output == Output::Table {
         println!("{0: <25}\t{1: <25}", "NAME", "LABELS");
     }
 
-    let mut files: Vec<_> = fs::read_dir(config_dir)?.map(|r| r.unwrap()).collect();
-    files.sort_by_key(|f| f.path());
-
-    for file in files {
-        let file = file.path();
-
-        if !is_kubeconfig(&file) {
-            continue;
-        }
-
-        let name = file
-            .file_stem()
-            .ok_or_else(|| anyhow!("cannot determine basename"))?
-            .to_str()
-            .ok_or_else(|| anyhow!("cannot convert file path to string"))?;
-
-        let labels = match metadata.get(name) {
-            Some(m) => m.labels.clone().unwrap_or_default(),
-            None => BTreeMap::new(),
-        };
-
-        if !metadata::labels::matches_labels(&labels, &selectors) {
-            continue;
-        }
-
-        log::debug!("found a kubeconfig at {}", file.display());
-
+    // loop over all kubeconfigs we found
+    for (name, labels) in kubeconfigs {
         println!(
             "{}",
             match *output {
@@ -110,17 +84,14 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn is_kubeconfig(file: &Path) -> bool {
-    if !file.is_file() {
-        return false;
+fn format_labels(map: &Option<BTreeMap<String, String>>) -> String {
+    if let Some(labels) = map {
+        return labels
+            .iter()
+            .map(|(key, value)| -> String { format!("{key}={value}") })
+            .collect::<Vec<String>>()
+            .join(",");
     }
 
-    matches!(file.extension(), Some(extension) if extension == "kubeconfig")
-}
-
-fn format_labels(map: &BTreeMap<String, String>) -> String {
-    map.iter()
-        .map(|(key, value)| -> String { format!("{key}={value}") })
-        .collect::<Vec<String>>()
-        .join(",")
+    "".to_string()
 }
