@@ -54,6 +54,15 @@ pub fn command() -> Command {
                 .value_parser(clap::value_parser!(bool))
                 .conflicts_with("name"),
         )
+        .arg(
+            Arg::new("proxy-url")
+                .help("Configure a proxy url for the imported kubeconfig")
+                .long("proxy-url")
+                .short('p')
+                .required(false)
+                .num_args(1)
+                .value_parser(clap::value_parser!(String)),
+        )
 }
 
 pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
@@ -85,6 +94,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             kubeconfig_path,
             matches.get_one::<String>("name"),
             matches.get_flag("short"),
+            matches.get_one::<String>("proxy-url"),
         )?;
 
         metadata = metadata.set(name, metadata::ConfigMetadata { labels });
@@ -98,7 +108,13 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         for file in files {
             let entry = file?;
             let path = entry.path();
-            let name = kubeconfig::import(config_dir, &path, None, matches.get_flag("short"));
+            let name = kubeconfig::import(
+                config_dir,
+                &path,
+                None,
+                matches.get_flag("short"),
+                matches.get_one::<String>("proxy-url"),
+            );
 
             if let Err(err) = name {
                 log::warn!(
