@@ -1,3 +1,5 @@
+use kube::config::NamedCluster;
+
 use crate::{kubeconfig, Error};
 use std::fs::{self};
 use std::os::unix::fs::PermissionsExt;
@@ -12,13 +14,14 @@ pub fn import(
     kubeconfig_path: &Path,
     name: Option<&String>,
     use_short: bool,
+    proxy: Option<&String>,
 ) -> Result<String, Error> {
     log::debug!(
         "trying to import {}",
         kubeconfig_path.to_str().unwrap_or_default()
     );
 
-    let kubeconfig = match kubeconfig_path.to_str().is_some_and(|x| x == "-") {
+    let mut kubeconfig = match kubeconfig_path.to_str().is_some_and(|x| x == "-") {
         false => kubeconfig::get_from_file(kubeconfig_path)?,
         true => {
             let reader = BufReader::new(stdin().lock());
@@ -28,6 +31,16 @@ pub fn import(
             }
         }
     };
+
+    if let Some(proxy_url) = proxy {
+        let clusters = kubeconfig
+            .clusters
+            .iter()
+            .map(|cluster| set_proxy(cluster, proxy_url))
+            .collect::<Vec<NamedCluster>>();
+
+        kubeconfig.clusters = clusters;
+    }
 
     // read the name from the command line flag; if it's not set,
     // extract the hostname and use that as name.
@@ -66,4 +79,16 @@ pub fn import(
     serde_yaml::to_writer(file, &kubeconfig)?;
 
     Ok(name)
+}
+
+fn set_proxy(cluster: &NamedCluster, proxy: &str) -> NamedCluster {
+    let mut new_cluster = cluster.to_owned();
+
+    if let Some(inner_cluster) = &cluster.cluster {
+        let mut inner_cluster = inner_cluster.to_owned();
+        inner_cluster.proxy_url = Some(proxy.to_string());
+        new_cluster.cluster = Some(inner_cluster);
+    }
+
+    new_cluster
 }
