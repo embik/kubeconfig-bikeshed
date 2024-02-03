@@ -1,6 +1,6 @@
 use crate::Error;
 use kube::config::Kubeconfig;
-use std::{fs::File, path::Path, path::PathBuf};
+use std::{fs::File, io, path::Path, path::PathBuf};
 use url::Url;
 
 mod import;
@@ -24,7 +24,7 @@ pub fn get_from_file(file: &Path) -> Result<Kubeconfig, Error> {
 }
 
 pub fn get(config_dir: &Path, name: &str) -> Result<(PathBuf, Kubeconfig), Error> {
-    let kubeconfig_path = config_dir.join(format!("{name}.kubeconfig"));
+    let kubeconfig_path = get_path(config_dir, name);
     let kubeconfig = get_from_file(&kubeconfig_path)?;
     Ok((kubeconfig_path, kubeconfig))
 }
@@ -64,6 +64,12 @@ pub fn get_hostname(kubeconfig: &Kubeconfig) -> Result<String, Error> {
     }
 }
 
+pub fn r#move(config_dir: &Path, source: &str, destination: &str) -> Result<(), io::Error> {
+    let src_path = get_path(config_dir, source);
+    let dest_path = get_path(config_dir, destination);
+    std::fs::rename(src_path, dest_path)
+}
+
 pub fn rename_context(kubeconfig: &Kubeconfig, context_name: &str) -> Result<Kubeconfig, Error> {
     let mut new_kubeconfig = kubeconfig.clone();
 
@@ -83,4 +89,8 @@ pub fn rename_context(kubeconfig: &Kubeconfig, context_name: &str) -> Result<Kub
     new_kubeconfig.contexts = contexts;
 
     Ok(new_kubeconfig)
+}
+
+pub fn get_path(config_dir: &Path, name: &str) -> PathBuf {
+    config_dir.join(format!("{name}.kubeconfig"))
 }
