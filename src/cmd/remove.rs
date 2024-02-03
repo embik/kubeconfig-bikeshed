@@ -21,7 +21,7 @@ pub fn command() -> Command {
                 .short('l')
                 .num_args(0..)
                 .value_delimiter(',')
-                .value_parser(metadata::labels::parse_key_val),
+                .value_parser(metadata::selectors::parse),
         )
         .group(ArgGroup::new("target")
                .args(["kubeconfig", "selectors"])
@@ -40,11 +40,9 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
     let removals = match matches.contains_id("selectors") {
         true => {
-            let selectors = matches
-                .get_many::<(String, String)>("selectors")
-                .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
+            let selectors = metadata::selectors::from_args(matches, "selectors")?;
 
-            kubeconfig::list(config_dir, &metadata, selectors.clone())?
+            kubeconfig::list(config_dir, &metadata, Some(selectors))?
         }
         false => {
             let config = matches

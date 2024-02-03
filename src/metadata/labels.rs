@@ -3,82 +3,100 @@ use crate::Error;
 use clap::ArgMatches;
 use std::collections::BTreeMap;
 
-/// Parse a single key-value pair
-pub fn parse_key_val(s: &str) -> Result<(String, String), Error> {
-    let pos = s
-        .find('=')
-        .ok_or_else(|| Error::Message(format!("invalid key=value pair: no `=` found in `{s}`")))?;
-
-    let key = &s[..pos];
-    let value = &s[pos + 1..];
-
-    if !is_valid_label_key(key) || !is_valid_label_value(value) {
-        return Err(Error::Message(
-            "key or value are not valid RFC 1123 dns-style".to_string(),
-        ));
-    }
-
-    Ok((key.to_string(), value.to_string()))
+#[derive(Clone)]
+pub struct Label {
+    pub key: String,
+    pub value: Option<String>,
 }
 
-pub fn collect_from_args(
-    matches: &ArgMatches,
-    id: &str,
-) -> Result<BTreeMap<String, String>, Error> {
+pub fn to_map(vec: &Vec<Label>) -> BTreeMap<String, String> {
     let mut map = BTreeMap::new();
+    vec.iter().for_each(|label| {
+        if let Some(value) = &label.value {
+            map.insert(label.key.clone(), value.clone());
+        }
+    });
 
-    matches
-        .get_many::<(String, String)>(id)
-        .ok_or_else(|| Error::Message("failed to parse labels from argument".to_string()))?
-        .for_each(|(key, value)| {
-            map.insert(key.clone(), value.clone());
-        });
-
-    Ok(map)
+    map
 }
 
-pub fn matches_labels(
-    labels: &BTreeMap<String, String>,
-    selectors: &Option<Vec<&(String, String)>>,
-) -> bool {
-    if let Some(ref selector) = selectors {
-        for label in selector.iter() {
-            let (key, value) = label;
-            let opt = labels.get(key);
-            if !(opt.is_some() && opt.unwrap() == value) {
-                return false;
-            }
+/// Parse a single label (key=value or key-) from string
+pub fn parse(s: &str) -> Result<Label, Error> {
+    // if the equal sign is in the string, we can parse key=val
+    if let Some(pos) = s.find('=') {
+        let key = &s[..pos];
+        let value = &s[pos + 1..];
+
+        if !is_valid_label_key(key) || !is_valid_label_value(value) {
+            return Err(Error::Message(
+                "key or value are not valid RFC 1123 dns-style".to_string(),
+            ));
         }
 
-        return true;
+        return Ok(Label {
+            key: key.to_string(),
+            value: Some(value.to_string()),
+        });
+    } else if s.ends_with('-') {
+        // if the equal sign is NOT in here, we have to look for '-' because this might be
+        // setting the "remove label with this key" type of label string
+        let key = &s[..s.len() - 1];
+
+        return Ok(Label {
+            key: key.to_string(),
+            value: None,
+        });
     }
 
-    return true;
+    Err(Error::Message(format!("could not parse `{s}` as label")))
 }
 
-pub fn merge_labels(
+pub fn from_args(matches: &ArgMatches, id: &str) -> Result<Vec<Label>, Error> {
+    if !matches.contains_id(id) {
+        return Ok(vec![]);
+    }
+
+    let labels = matches
+        .get_many::<Label>(id)
+        .ok_or_else(|| Error::Message("failed to parse labels from argument".to_string()))?
+        .map(|l| l.to_owned())
+        .collect::<Vec<Label>>();
+
+    Ok(labels)
+}
+
+pub fn merge(
     metadata: &ConfigMetadata,
-    new_labels: &BTreeMap<String, String>,
+    new_labels: &Vec<Label>,
     overwrite: bool,
 ) -> Result<BTreeMap<String, String>, Error> {
     match &metadata.labels {
         Some(existing_labels) => {
             let mut merged_labels = existing_labels.clone();
 
-            for (key, value) in new_labels.iter() {
-                if let Some(old_value) = merged_labels.insert(key.to_string(), value.to_string()) {
-                    if !old_value.eq(value) && !overwrite {
-                        return Err(Error::Message(format!(
-                            "cannot set key '{}' to value '{}', is '{}' already",
-                            key, value, old_value
-                        )));
+            for label in new_labels.iter() {
+                if let Some(new_val) = &label.value {
+                    if let Some(old_val) =
+                        merged_labels.insert(label.key.clone(), new_val.to_owned())
+                    {
+                        if !old_val.eq(new_val) && !overwrite {
+                            return Err(Error::Message(format!(
+                                "cannot set key '{}' to value '{}', is '{}' already",
+                                label.key, new_val, old_val
+                            )));
+                        }
                     }
+                } else {
+                    // the label had value set to None, which means
+                    // we want to remove the label from the merged
+                    // map.
+                    merged_labels.remove(&label.key);
                 }
             }
 
             Ok(merged_labels)
         }
-        None => Ok(new_labels.clone()),
+        None => Ok(to_map(&new_labels)),
     }
 }
 

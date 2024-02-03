@@ -29,11 +29,11 @@ pub fn command() -> Command {
         .arg(
             Arg::new("labels")
                 .help("List of comma-separated key=value labels to add to the kubeconfig metadata")
-                .long("set-labels")
+                .long("labels")
                 .short('l')
                 .required(false)
                 .value_delimiter(',')
-                .value_parser(metadata::labels::parse_key_val),
+                .value_parser(labels::parse),
         )
         .arg(
             Arg::new("delete")
@@ -70,11 +70,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         .get_one::<PathBuf>("kubeconfig")
         .ok_or_else(|| anyhow!("failed to parse kubeconfig argument"))?;
 
-    // collect labels from argument into map
-    let labels = match matches.contains_id("labels") {
-        true => Some(labels::collect_from_args(matches, "labels")?),
-        false => None,
-    };
+    let labels = labels::from_args(matches, "labels")?;
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
@@ -97,7 +93,12 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             matches.get_one::<String>("proxy-url"),
         )?;
 
-        metadata = metadata.set(name, metadata::ConfigMetadata { labels });
+        metadata = metadata.set(
+            name,
+            metadata::ConfigMetadata {
+                labels: Some(labels::to_map(&labels)),
+            },
+        );
 
         if matches.get_flag("delete") {
             fs::remove_file(kubeconfig_path)?;
@@ -128,7 +129,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             metadata = metadata.set(
                 name.unwrap(),
                 metadata::ConfigMetadata {
-                    labels: labels.clone(),
+                    labels: Some(labels::to_map(&labels)),
                 },
             );
         }

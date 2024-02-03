@@ -4,6 +4,9 @@ use std::collections::btree_map::BTreeMap;
 use std::{fs::File, path::Path, path::PathBuf};
 
 pub mod labels;
+pub mod selectors;
+
+pub use selectors::Selector;
 
 pub const FILE: &str = "metadata.json";
 
