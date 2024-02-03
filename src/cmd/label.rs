@@ -13,7 +13,7 @@ pub fn command() -> Command {
         .arg_required_else_help(true)
         .arg(
             Arg::new("labels")
-                .value_parser(metadata::labels::parse_key_val)
+                .value_parser(metadata::labels::parse)
                 .value_delimiter(',')
                 .required(true)
         )
@@ -29,7 +29,7 @@ pub fn command() -> Command {
                 .long("selector")
                 .short('l')
                 .value_delimiter(',')
-                .value_parser(metadata::labels::parse_key_val)
+                .value_parser(metadata::selectors::parse)
                 .conflicts_with("kubeconfig"),
         )
         .arg(
@@ -59,13 +59,11 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     };
 
     if matches.contains_id("selectors") && !matches.contains_id("kubeconfig") {
-        let selectors = matches
-            .get_many::<(String, String)>("selectors")
-            .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
+        let selectors = metadata::selectors::from_args(matches, "selectors")?;
 
         metadata.kubeconfigs.iter().for_each(|k| {
             if let Some(labels) = &k.1.labels {
-                if metadata::labels::matches_labels(&labels, &selectors) {
+                if metadata::selectors::matches(&selectors, &labels) {
                     to_label.push(k.0.to_string());
                 }
             }
@@ -81,35 +79,29 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     }
 
     // collect labels from argument into map
-    let labels = labels::collect_from_args(matches, "labels")?;
+    let labels = labels::from_args(matches, "labels")?;
 
     for f in to_label.iter() {
         // if kubeconfig has metadata already, we need to merge labels
         if let Some(config_metadata) = metadata.get(f) {
             let mut config_metadata = config_metadata.clone();
 
-            config_metadata.labels = Some(labels::merge_labels(
+            config_metadata.labels = Some(labels::merge(
                 &config_metadata,
                 &labels,
                 matches.get_flag("overwrite"),
             )?);
 
-            metadata
-                .set(f.to_string(), config_metadata)
-                .write(&metadata_path)?;
-
-            log::info!("updated labels for {}", f);
-
-            return Ok(());
+            metadata = metadata.set(f.to_string(), config_metadata);
+        } else {
+            // no previous metadata exists for this kubeconfig, so we can safely set it
+            metadata = metadata.set(
+                f.to_string(),
+                ConfigMetadata {
+                    labels: Some(labels::to_map(&labels)),
+                },
+            );
         }
-
-        // no previous metadata exists for this kubeconfig, so we can safely set it
-        metadata = metadata.set(
-            f.to_string(),
-            ConfigMetadata {
-                labels: Some(labels.clone()),
-            },
-        );
 
         log::info!("updated labels for {}", f);
     }

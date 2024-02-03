@@ -1,5 +1,5 @@
 use crate::kubeconfig;
-use crate::metadata::{self, labels, Metadata};
+use crate::metadata::{self, Metadata};
 use anyhow::Result;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use futures::executor;
@@ -33,23 +33,21 @@ pub fn command() -> Command {
                 .required(false)
                 .num_args(0..)
                 .value_delimiter(',')
-                .value_parser(labels::parse_key_val),
+                .value_parser(metadata::selectors::parse),
         )
 }
 
 pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     log::debug!("looking for kubeconfigs in {}", config_dir.display());
 
-    let selectors = matches
-        .get_many::<(String, String)>("selectors")
-        .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
+    let selectors = metadata::selectors::from_args(matches, "selectors")?;
     let dry_run = matches.get_flag("dry-run");
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
     let mut metadata = Metadata::from_file(&metadata_path)?;
 
-    let kubeconfigs = kubeconfig::list(config_dir, &metadata, selectors.clone())?;
+    let kubeconfigs = kubeconfig::list(config_dir, &metadata, Some(selectors))?;
 
     for (name, _) in kubeconfigs.iter() {
         log::info!("checking if '{name}' should be pruned");

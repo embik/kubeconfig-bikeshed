@@ -6,7 +6,7 @@ use std::{fs, path::Path};
 pub fn list(
     config_dir: &Path,
     metadata: &Metadata,
-    selectors: Option<Vec<&(String, String)>>,
+    selectors: Option<Vec<metadata::Selector>>,
 ) -> Result<Vec<(String, Option<BTreeMap<String, String>>)>, Error> {
     let mut kubeconfigs: Vec<(String, Option<BTreeMap<String, String>>)> = vec![];
 
@@ -26,19 +26,23 @@ pub fn list(
             .to_str()
             .ok_or_else(|| Error::Message("cannot convert file path to string".to_string()))?;
 
-        let labels: Option<BTreeMap<String, String>> = match metadata.get(name) {
-            Some(m) => {
-                if !metadata::labels::matches_labels(
-                    &m.labels.clone().unwrap_or_default(),
-                    &selectors,
-                ) {
-                    continue;
-                }
+        let mut labels: Option<BTreeMap<String, String>> = None;
 
-                Some(m.labels.clone().unwrap_or_default())
-            }
-            None => None,
-        };
+        if let Some(ref selectors) = selectors {
+            labels = match metadata.get(name) {
+                Some(m) => {
+                    if !metadata::selectors::matches(
+                        &selectors,
+                        &m.labels.clone().unwrap_or_default(),
+                    ) {
+                        continue;
+                    }
+
+                    Some(m.labels.clone().unwrap_or_default())
+                }
+                None => None,
+            };
+        }
 
         kubeconfigs.push((name.to_string(), labels));
     }

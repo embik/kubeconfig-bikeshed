@@ -13,13 +13,13 @@ pub fn command() -> Command {
         .visible_alias("ls")
         .about("List available kubeconfigs")
         .arg(
-            Arg::new("labels")
+            Arg::new("selectors")
                 .help("Selector (label query) to filter on. Supports key=value comma-separated values")
                 .long("selector")
                 .short('l')
                 .required(false)
                 .value_delimiter(',')
-                .value_parser(metadata::labels::parse_key_val),
+                .value_parser(metadata::selectors::parse),
         )
         .arg(
             Arg::new("unset")
@@ -51,15 +51,13 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         .get_one::<Output>("output")
         .ok_or_else(|| anyhow!("cannot read output"))?;
 
-    let selectors = matches
-        .get_many::<(String, String)>("labels")
-        .map(|values_ref| values_ref.into_iter().collect::<Vec<&(String, String)>>());
+    let selectors = metadata::selectors::from_args(matches, "selectors")?;
 
     let metadata_path = metadata::file_path(config_dir);
     log::debug!("loading metadata from {}", metadata_path.display());
     let metadata = Metadata::from_file(&metadata_path)?;
 
-    let kubeconfigs = kubeconfig::list(config_dir, &metadata, selectors.clone())?;
+    let kubeconfigs = kubeconfig::list(config_dir, &metadata, Some(selectors))?;
 
     // print table header
     if *output == Output::Table {
