@@ -96,6 +96,7 @@ Commands:
   version  Print version [aliases: v]
   label    Manage labels on kubeconfigs in the data store [aliases: l]
   prune    Remove kubeconfigs for Kubernetes API servers that are no longer accessible [aliases: p]
+  move     Rename a kubeconfig in store [aliases: mv]
   help     Print this message or the help of the given subcommand(s)
 
 Options:
