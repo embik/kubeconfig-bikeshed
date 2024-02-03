@@ -59,7 +59,7 @@ pub fn import(
 
     log::debug!("using {} as name for kubeconfig file and context", name);
 
-    let target_path = config_dir.join(format!("{}.kubeconfig", name));
+    let target_path = kubeconfig::get_path(config_dir, &name);
 
     // TODO: prompt the user for confirmation to override instead of
     // throwing an error.

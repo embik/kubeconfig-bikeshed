@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{error, Error};
 use serde::{Deserialize, Serialize};
 use std::collections::btree_map::BTreeMap;
 use std::{fs::File, path::Path, path::PathBuf};
@@ -74,6 +74,22 @@ impl Metadata {
         let map = &mut self.kubeconfigs;
         map.remove(name);
         self
+    }
+
+    pub fn rename(mut self, source: &str, destination: &str) -> Result<Self, error::Error> {
+        let map = &mut self.kubeconfigs;
+        if let Some(val) = map.get(source) {
+            if map.get(destination).is_some() {
+                return Err(error::Error::Message(format!(
+                    "{destination} already exists in metadata store"
+                )));
+            }
+
+            map.insert(destination.to_string(), val.clone());
+            map.remove(source);
+        }
+
+        Ok(self)
     }
 }
 

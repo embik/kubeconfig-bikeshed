@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 pub mod import;
 pub mod label;
 pub mod list;
+pub mod r#move;
 pub mod prune;
 pub mod remove;
 pub mod shell;
@@ -40,6 +41,7 @@ pub fn cli() -> Command {
             version::command(),
             label::command(),
             prune::command(),
+            r#move::command(),
             // TODO: add subcommand 'fetch' to fetch kubeconfigs from remote systems.
         ])
 }
@@ -53,6 +55,7 @@ pub fn execute(config_path: &Path, matches: Option<(&str, &ArgMatches)>) -> Resu
         Some((remove::NAME, sub_matches)) => handle(remove::execute(config_path, sub_matches)),
         Some((label::NAME, sub_matches)) => handle(label::execute(config_path, sub_matches)),
         Some((prune::NAME, sub_matches)) => handle(prune::execute(config_path, sub_matches)),
+        Some((r#move::NAME, sub_matches)) => handle(r#move::execute(config_path, sub_matches)),
         Some((version::NAME, _)) => handle(version::execute()),
         _ => {
             log::error!("unknown command");
