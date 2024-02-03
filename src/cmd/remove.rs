@@ -49,18 +49,23 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
                 .get_one::<String>("kubeconfig")
                 .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))?;
 
-            vec![(config.to_string(), None)]
+            vec![
+                (kubeconfig::ListEntry {
+                    name: config.to_string(),
+                    labels: None,
+                }),
+            ]
         }
     };
 
-    for (name, _) in removals.iter() {
-        let kubeconfig_path = kubeconfig::get_path(&config_dir, name);
-        if kubeconfig::get(&config_dir, name).is_ok() {
+    for entry in removals.iter() {
+        let kubeconfig_path = kubeconfig::get_path(config_dir, &entry.name);
+        if kubeconfig::get(config_dir, &entry.name).is_ok() {
             fs::remove_file(&kubeconfig_path)?;
             log::info!("removed kubeconfig at {}", kubeconfig_path.display());
-            metadata = metadata.remove(name);
+            metadata = metadata.remove(&entry.name);
         } else {
-            return Err(anyhow!("Kubeconfig not found: {:?}", name));
+            return Err(anyhow!("kubeconfig not found: {:?}", &entry.name));
         }
     }
 

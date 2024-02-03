@@ -42,7 +42,7 @@ pub fn execute(config_path: &Path, matches: &ArgMatches) -> Result<()> {
         Err(e) => return Err(e),
     };
 
-    if let Ok(kubecfg) = kubeconfig::get(&config_path, &config) {
+    if let Ok(kubecfg) = kubeconfig::get(config_path, &config) {
         if requires_store {
             config::save_last_active(config_path, &config)?;
             log::debug!("stored {config} as last active kubeconfig");

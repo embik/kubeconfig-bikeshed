@@ -65,12 +65,16 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
     }
 
     // loop over all kubeconfigs we found
-    for (name, labels) in kubeconfigs {
+    for entry in kubeconfigs {
         println!(
             "{}",
             match *output {
-                Output::Name => name.to_string(),
-                Output::Table => format!("{0: <25}\t{1: <25}", name, format_labels(&labels)),
+                Output::Name => entry.name,
+                Output::Table => format!(
+                    "{0: <25}\t{1: <25}",
+                    entry.name,
+                    format_labels(&entry.labels)
+                ),
             }
         );
     }

@@ -9,7 +9,7 @@ pub struct Label {
     pub value: Option<String>,
 }
 
-pub fn to_map(vec: &Vec<Label>) -> BTreeMap<String, String> {
+pub fn to_map(vec: &[Label]) -> BTreeMap<String, String> {
     let mut map = BTreeMap::new();
     vec.iter().for_each(|label| {
         if let Some(value) = &label.value {
@@ -37,13 +37,11 @@ pub fn parse(s: &str) -> Result<Label, Error> {
             key: key.to_string(),
             value: Some(value.to_string()),
         });
-    } else if s.ends_with('-') {
+    } else if let Some(stripped) = s.strip_suffix('-') {
         // if the equal sign is NOT in here, we have to look for '-' because this might be
         // setting the "remove label with this key" type of label string
-        let key = &s[..s.len() - 1];
-
         return Ok(Label {
-            key: key.to_string(),
+            key: stripped.to_string(),
             value: None,
         });
     }
@@ -67,7 +65,7 @@ pub fn from_args(matches: &ArgMatches, id: &str) -> Result<Vec<Label>, Error> {
 
 pub fn merge(
     metadata: &ConfigMetadata,
-    new_labels: &Vec<Label>,
+    new_labels: &[Label],
     overwrite: bool,
 ) -> Result<BTreeMap<String, String>, Error> {
     match &metadata.labels {
@@ -96,7 +94,7 @@ pub fn merge(
 
             Ok(merged_labels)
         }
-        None => Ok(to_map(&new_labels)),
+        None => Ok(to_map(new_labels)),
     }
 }
 
@@ -115,8 +113,8 @@ pub fn is_valid_rfc_1123_subdomain(label: &str) -> bool {
 }
 
 pub fn is_valid_label_key(label: &str) -> bool {
-    let (prefix, name) = label.split_at(label.find('/').unwrap_or_else(|| 0) + 1);
-    let prefix = prefix.strip_suffix("/").unwrap_or_else(|| prefix);
+    let (prefix, name) = label.split_at(label.find('/').unwrap_or(0) + 1);
+    let prefix = prefix.strip_suffix('/').unwrap_or(prefix);
 
     is_valid_rfc_1123_subdomain(prefix) && is_valid_rfc_1123_subdomain(name)
 }

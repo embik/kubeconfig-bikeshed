@@ -49,9 +49,9 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
     let kubeconfigs = kubeconfig::list(config_dir, &metadata, Some(selectors))?;
 
-    for (name, _) in kubeconfigs.iter() {
-        log::info!("checking if '{name}' should be pruned");
-        let (kubecfg_path, kubecfg) = kubeconfig::get(&config_dir, name)?;
+    for entry in kubeconfigs.iter() {
+        log::info!("checking if '{}' should be pruned", entry.name);
+        let (kubecfg_path, kubecfg) = kubeconfig::get(config_dir, &entry.name)?;
 
         let options = kube::config::KubeConfigOptions {
             cluster: None,
@@ -67,10 +67,14 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         if response.is_err() {
             if !dry_run {
                 fs::remove_file(&kubecfg_path)?;
-                log::info!("pruned kubeconfig '{name}' at {}", kubecfg_path.display());
-                metadata = metadata.remove(name);
+                log::info!(
+                    "pruned kubeconfig '{}' at {}",
+                    entry.name,
+                    kubecfg_path.display()
+                );
+                metadata = metadata.remove(&entry.name);
             } else {
-                log::info!("'{name}' should be pruned");
+                log::info!("'{}' should be pruned", entry.name);
             }
         };
     }

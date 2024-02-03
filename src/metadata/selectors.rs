@@ -16,7 +16,7 @@ pub struct Selector {
     pub op: Operation,
 }
 
-pub fn matches(selectors: &Vec<Selector>, labels: &BTreeMap<String, String>) -> bool {
+pub fn matches(selectors: &[Selector], labels: &BTreeMap<String, String>) -> bool {
     for selector in selectors.iter() {
         let opt = labels.get(&selector.key);
         if let Some(value) = opt {
@@ -30,7 +30,7 @@ pub fn matches(selectors: &Vec<Selector>, labels: &BTreeMap<String, String>) -> 
         }
     }
 
-    return true;
+    true
 }
 
 pub fn from_args(matches: &ArgMatches, id: &str) -> Result<Vec<Selector>, Error> {
@@ -52,7 +52,7 @@ pub fn parse(s: &str) -> Result<Selector, Error> {
     let pos = s
         .find('=')
         .ok_or_else(|| Error::Message(format!("invalid selector: no `=` found in `{s}`")))?;
-    let mut key_end = pos.clone();
+    let mut key_end = pos;
     let mut op = Operation::Equal;
 
     // check if '!' is in the string and right before the '='

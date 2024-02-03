@@ -3,12 +3,17 @@ use crate::Error;
 use std::collections::btree_map::BTreeMap;
 use std::{fs, path::Path};
 
+pub struct ListEntry {
+    pub name: String,
+    pub labels: Option<BTreeMap<String, String>>,
+}
+
 pub fn list(
     config_dir: &Path,
     metadata: &Metadata,
     selectors: Option<Vec<metadata::Selector>>,
-) -> Result<Vec<(String, Option<BTreeMap<String, String>>)>, Error> {
-    let mut kubeconfigs: Vec<(String, Option<BTreeMap<String, String>>)> = vec![];
+) -> Result<Vec<ListEntry>, Error> {
+    let mut kubeconfigs: Vec<ListEntry> = vec![];
 
     let mut files: Vec<fs::DirEntry> = fs::read_dir(config_dir)?.map(|r| r.unwrap()).collect();
     files.sort_by_key(|f| f.path());
@@ -32,7 +37,7 @@ pub fn list(
             labels = match metadata.get(name) {
                 Some(m) => {
                     if !metadata::selectors::matches(
-                        &selectors,
+                        selectors,
                         &m.labels.clone().unwrap_or_default(),
                     ) {
                         continue;
@@ -44,7 +49,10 @@ pub fn list(
             };
         }
 
-        kubeconfigs.push((name.to_string(), labels));
+        kubeconfigs.push(ListEntry {
+            name: name.to_string(),
+            labels,
+        });
     }
 
     Ok(kubeconfigs)

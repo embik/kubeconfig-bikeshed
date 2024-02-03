@@ -40,7 +40,7 @@ pub fn command() -> Command {
                 .action(ArgAction::SetTrue)
                 .value_parser(clap::value_parser!(bool)),
         )
-        .group(ArgGroup::new("target").args(&["selectors", "kubeconfig"]).required(true))
+        .group(ArgGroup::new("target").args(["selectors", "kubeconfig"]).required(true))
         .arg_required_else_help(true)
 }
 
@@ -63,7 +63,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
 
         metadata.kubeconfigs.iter().for_each(|k| {
             if let Some(labels) = &k.1.labels {
-                if metadata::selectors::matches(&selectors, &labels) {
+                if metadata::selectors::matches(&selectors, labels) {
                     to_label.push(k.0.to_string());
                 }
             }

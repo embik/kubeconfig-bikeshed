@@ -8,6 +8,7 @@ mod list;
 
 pub use import::import;
 pub use list::list;
+pub use list::ListEntry;
 
 #[cfg(test)]
 mod tests;
