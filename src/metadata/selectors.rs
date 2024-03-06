@@ -25,7 +25,9 @@ pub fn matches(selectors: &[Selector], labels: &BTreeMap<String, String>) -> boo
             {
                 return false;
             }
-        } else {
+        } else if selector.op == Operation::Equal {
+            // if the label doesn't exist, we only have to return "false"
+            // if the operation was an equal check. For NotEqual we're good.
             return false;
         }
     }
