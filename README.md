@@ -129,6 +129,10 @@ Existing label values can only be updated if `--overwrite` is set, mimicking `ku
 
 By default, this command runs in "dry mode", which means it will not delete any kubeconfigs (as this is a destructive action potentially elevated by temporary networking problems). To actually prune kubeconfigs, pass `--dry-run=false` to the command.
 
+## Contributing
+
+If you are interested in contributing to `kbs` please check out the [contribution guidelines](./CONTRIBUTING.md).
+
 ## Alternatives
 
 - [konf-go](https://github.com/SimonTheLeg/konf-go) by my colleague Simon, if you are looking for a more mature solution written in Go.
