@@ -83,28 +83,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
         Err(err) => bail!(err),
     };
 
-    if kubeconfig_path.is_file() {
-        // run import logic.
-        let name = kubeconfig::import(
-            config_dir,
-            kubeconfig_path,
-            matches.get_one::<String>("name"),
-            matches.get_flag("short"),
-            matches.get_one::<String>("proxy-url"),
-        )?;
-
-        metadata = metadata.set(
-            name,
-            metadata::ConfigMetadata {
-                labels: Some(labels::to_map(&labels)),
-            },
-        );
-
-        if matches.get_flag("delete") {
-            fs::remove_file(kubeconfig_path)?;
-            log::debug!("deleted {}", kubeconfig_path.display());
-        }
-    } else if kubeconfig_path.is_dir() {
+    if kubeconfig_path.is_dir() {
         let files = fs::read_dir(kubeconfig_path)?;
         for file in files {
             let entry = file?;
@@ -132,6 +111,27 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
                     labels: Some(labels::to_map(&labels)),
                 },
             );
+        }
+    } else {
+        // run import logic.
+        let name = kubeconfig::import(
+            config_dir,
+            kubeconfig_path,
+            matches.get_one::<String>("name"),
+            matches.get_flag("short"),
+            matches.get_one::<String>("proxy-url"),
+        )?;
+
+        metadata = metadata.set(
+            name,
+            metadata::ConfigMetadata {
+                labels: Some(labels::to_map(&labels)),
+            },
+        );
+
+        if matches.get_flag("delete") {
+            fs::remove_file(kubeconfig_path)?;
+            log::debug!("deleted {}", kubeconfig_path.display());
         }
     }
 

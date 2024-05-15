@@ -1,3 +1,5 @@
+use std::fs;
+
 use assert_cmd::Command;
 use predicates::str::{contains, is_match};
 use tempfile::tempdir;
@@ -241,4 +243,26 @@ fn test_kbs_import_directory() {
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\nlocalhost\n$").unwrap());
+}
+
+#[test]
+fn test_kbs_import_from_stdin() {
+    let temp_dir = tempdir().unwrap();
+    let base_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/files");
+
+    let buffer = fs::read(base_dir.join("test.kubeconfig")).unwrap();
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .write_stdin(buffer)
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "import", "-"])
+        .assert()
+        .success();
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .assert()
+        .success()
+        .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
 }
