@@ -1,0 +1,24 @@
+---
+name: Commit Conformance
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  signoff:
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup main branch without switching current branch
+        run: git fetch origin main:main
+
+      - name: Conform Action
+        uses: siderolabs/conform@v0.1.0-alpha.29
+        with:
+          args: "enforce --base-branch=main"
