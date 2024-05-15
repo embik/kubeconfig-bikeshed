@@ -1,0 +1,37 @@
+policies:
+  - type: commit
+    spec:
+      header:
+        length: 89
+        imperative: true
+        case: lower
+        invalidLastCharacters: .
+      dco: true
+      spellcheck:
+        locale: US
+      conventional:
+        types:
+          # build system, releases
+          - "build"
+          # changes with no functional effect (e.g. updating dependencies)
+          - "chore"
+          # GitHub Actions
+          - "ci"
+          # Documentation
+          - "docs"
+          # Unit and integration tests
+          - "test"
+        scopes:
+          # everything related to cargo configuration and dependencies
+          - "cargo"
+          # all current subcommands in kbs
+          - "import"
+          - "label"
+          - "list"
+          - "move"
+          - "prune"
+          - "remove"
+          - "shell"
+          - "use"
+          - "version"
+        descriptionLength: 72
