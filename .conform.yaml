@@ -15,8 +15,6 @@ policies:
           - "build"
           # changes with no functional effect (e.g. updating dependencies)
           - "chore"
-          # GitHub Actions
-          - "ci"
           # Documentation
           - "docs"
           # Unit and integration tests
@@ -24,6 +22,8 @@ policies:
         scopes:
           # everything related to cargo configuration and dependencies
           - "cargo"
+          # GitHub Actions
+          - "ci"
           # all current subcommands in kbs
           - "import"
           - "label"
