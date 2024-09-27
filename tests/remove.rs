@@ -141,3 +141,72 @@ fn test_kbs_remove_by_selector() {
         .success()
         .stdout(is_empty());
 }
+
+#[test]
+fn test_kbs_remove_active() {
+    let temp_dir = tempdir().unwrap();
+    let base_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/files");
+
+    // initial import should succeed.
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "import",
+            base_dir.join("test.kubeconfig").to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "import",
+            base_dir.join("localhost.kubeconfig").to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    // both should be listed.
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .assert()
+        .success()
+        .stdout(is_match("^kubernetes.embik.me\nlocalhost\n$").unwrap());
+
+    // use one of them
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "use",
+            "kubernetes.embik.me",
+        ])
+        .assert()
+        .success();
+
+    // removing active kubeconfig should succeed.
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&[
+            "-c",
+            temp_dir.path().to_str().unwrap(),
+            "remove",
+            "--active",
+        ])
+        .assert()
+        .success();
+
+    // only the other kubeconfig should be listed.
+    Command::cargo_bin("kbs")
+        .unwrap()
+        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .assert()
+        .success()
+        .stdout(is_match("^localhost\n$").unwrap());
+}

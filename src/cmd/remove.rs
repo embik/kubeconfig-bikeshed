@@ -1,9 +1,9 @@
-use crate::kubeconfig;
 use crate::metadata::{self, Metadata};
 use crate::Error;
+use crate::{config, kubeconfig};
 use anyhow::Result;
 use anyhow::{anyhow, bail};
-use clap::{value_parser, Arg, ArgGroup, ArgMatches, Command};
+use clap::{value_parser, Arg, ArgAction, ArgGroup, ArgMatches, Command};
 use std::{fs, path::Path};
 
 pub const NAME: &str = "remove";
@@ -23,8 +23,17 @@ pub fn command() -> Command {
                 .value_delimiter(',')
                 .value_parser(metadata::selectors::parse),
         )
+        .arg(
+            Arg::new("active")
+                .help("Remove the currently active kubeconfig")
+                .long("active")
+                .required(false)
+                .action(ArgAction::SetTrue)
+                .value_parser(clap::value_parser!(bool)),
+
+            )
         .group(ArgGroup::new("target")
-               .args(["kubeconfig", "selectors"])
+               .args(["kubeconfig", "selectors", "active"])
                .required(true))
         .arg_required_else_help(true)
 }
@@ -45,16 +54,28 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             kubeconfig::list(config_dir, &metadata, Some(selectors))?
         }
         false => {
-            let config = matches
-                .get_one::<String>("kubeconfig")
-                .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))?;
+            if matches.contains_id("kubeconfig") {
+                let config = matches
+                    .get_one::<String>("kubeconfig")
+                    .ok_or_else(|| anyhow!("failed to get kubeconfig argument"))?;
 
-            vec![
-                (kubeconfig::ListEntry {
-                    name: config.to_string(),
-                    labels: None,
-                }),
-            ]
+                vec![
+                    (kubeconfig::ListEntry {
+                        name: config.to_string(),
+                        labels: None,
+                    }),
+                ]
+            } else if matches.contains_id("active") {
+                let current = config::get_last_active(config_dir)?;
+                vec![
+                    (kubeconfig::ListEntry {
+                        name: current,
+                        labels: None,
+                    }),
+                ]
+            } else {
+                vec![]
+            }
         }
     };
 
