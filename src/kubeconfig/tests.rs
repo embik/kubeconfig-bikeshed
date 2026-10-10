@@ -171,7 +171,7 @@ fn test_get_hostname_multiple_clusters() -> Result<()> {
     assert_eq!("test.embik.me", get_hostname(&kubeconfig)?);
 
     let kubeconfig = kubeconfig_multiple_cluster_different_hosts();
-    assert_eq!(true, get_hostname(&kubeconfig).is_err());
+    assert!(get_hostname(&kubeconfig).is_err());
 
     Ok(())
 }

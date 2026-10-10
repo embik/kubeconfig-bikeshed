@@ -10,7 +10,7 @@ fn test_kbs_label_add() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -22,7 +22,7 @@ fn test_kbs_label_add() {
     // add a label to the imported kubeconfig.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "label",
@@ -36,7 +36,7 @@ fn test_kbs_label_add() {
     // assert that imported kubeconfig shows up under new label.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
@@ -56,7 +56,7 @@ fn test_kbs_label_add_by_selector() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -70,7 +70,7 @@ fn test_kbs_label_add_by_selector() {
     // add a label to the imported kubeconfig.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "label",
@@ -84,7 +84,7 @@ fn test_kbs_label_add_by_selector() {
     // assert that imported kubeconfig shows up under new label.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
@@ -104,7 +104,7 @@ fn test_kbs_label_remove() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -118,7 +118,7 @@ fn test_kbs_label_remove() {
     // assert that imported kubeconfig shows up under new label.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
@@ -132,7 +132,7 @@ fn test_kbs_label_remove() {
     // remove label from the imported kubeconfig.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "label",
@@ -146,7 +146,7 @@ fn test_kbs_label_remove() {
     // assert that imported kubeconfig no longer shows up under removed label.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
@@ -160,7 +160,7 @@ fn test_kbs_label_remove() {
     // assert that imported kubeconfig still shows up under old label.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",

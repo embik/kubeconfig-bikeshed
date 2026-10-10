@@ -136,8 +136,8 @@ mod tests {
 
         for test in tests.iter() {
             let (selectors, labels, expected) = test;
-            let labels_map = metadata::labels::to_map(&labels);
-            assert_eq!(matches(&selectors, &labels_map), expected.to_owned());
+            let labels_map = metadata::labels::to_map(labels);
+            assert_eq!(matches(selectors, &labels_map), expected.to_owned());
         }
     }
 }
