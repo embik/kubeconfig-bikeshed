@@ -86,7 +86,7 @@ pub fn execute(config_dir: &Path, matches: &ArgMatches) -> Result<()> {
             log::info!("removed kubeconfig at {}", kubeconfig_path.display());
             metadata = metadata.remove(&entry.name);
         } else {
-            return Err(anyhow!("kubeconfig not found: {:?}", &entry.name));
+            return Err(anyhow!("kubeconfig not found: {:?}", entry.name));
         }
     }
 

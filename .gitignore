@@ -9,5 +9,8 @@
 # Added by cargo
 /target
 
+# Local git worktrees
+.worktrees/
+
 .idea/
 .env
