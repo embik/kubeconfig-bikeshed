@@ -51,9 +51,3 @@ impl clap::ValueEnum for Output {
         })
     }
 }
-
-impl From<Output> for clap::builder::OsStr {
-    fn from(value: Output) -> clap::builder::OsStr {
-        value.into()
-    }
-}
