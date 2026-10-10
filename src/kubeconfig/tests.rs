@@ -17,23 +17,29 @@ fn kubeconfig() -> Kubeconfig {
                 proxy_url: None,
                 tls_server_name: None,
                 extensions: None,
+                ..Default::default()
             }),
+            ..Default::default()
         }],
         contexts: vec![NamedContext {
             name: "current-context".to_string(),
             context: Some(kube::config::Context {
                 cluster: "test-cluster".to_string(),
-                user: "user".to_string(),
+                user: Some("user".to_string()),
                 namespace: Some("default".to_string()),
                 extensions: None,
+                ..Default::default()
             }),
+            ..Default::default()
         }],
         auth_infos: vec![NamedAuthInfo {
             name: "user".to_string(),
             auth_info: None,
+            ..Default::default()
         }],
         extensions: None,
         current_context: Some("current-context".to_string()),
+        ..Default::default()
     }
 }
 
@@ -53,7 +59,9 @@ fn kubeconfig_multiple_cluster_same_host() -> Kubeconfig {
                     proxy_url: None,
                     tls_server_name: None,
                     extensions: None,
+                    ..Default::default()
                 }),
+                ..Default::default()
             },
             NamedCluster {
                 name: "test-cluster-2".to_string(),
@@ -65,24 +73,30 @@ fn kubeconfig_multiple_cluster_same_host() -> Kubeconfig {
                     proxy_url: None,
                     tls_server_name: None,
                     extensions: None,
+                    ..Default::default()
                 }),
+                ..Default::default()
             },
         ],
         contexts: vec![NamedContext {
             name: "current-context".to_string(),
             context: Some(kube::config::Context {
                 cluster: "test-cluster".to_string(),
-                user: "user".to_string(),
+                user: Some("user".to_string()),
                 namespace: Some("default".to_string()),
                 extensions: None,
+                ..Default::default()
             }),
+            ..Default::default()
         }],
         auth_infos: vec![NamedAuthInfo {
             name: "user".to_string(),
             auth_info: None,
+            ..Default::default()
         }],
         extensions: None,
         current_context: Some("current-context".to_string()),
+        ..Default::default()
     }
 }
 
@@ -102,7 +116,9 @@ fn kubeconfig_multiple_cluster_different_hosts() -> Kubeconfig {
                     proxy_url: None,
                     tls_server_name: None,
                     extensions: None,
+                    ..Default::default()
                 }),
+                ..Default::default()
             },
             NamedCluster {
                 name: "test-cluster-2".to_string(),
@@ -114,24 +130,30 @@ fn kubeconfig_multiple_cluster_different_hosts() -> Kubeconfig {
                     proxy_url: None,
                     tls_server_name: None,
                     extensions: None,
+                    ..Default::default()
                 }),
+                ..Default::default()
             },
         ],
         contexts: vec![NamedContext {
             name: "current-context".to_string(),
             context: Some(kube::config::Context {
                 cluster: "test-cluster".to_string(),
-                user: "user".to_string(),
+                user: Some("user".to_string()),
                 namespace: Some("default".to_string()),
                 extensions: None,
+                ..Default::default()
             }),
+            ..Default::default()
         }],
         auth_infos: vec![NamedAuthInfo {
             name: "user".to_string(),
             auth_info: None,
+            ..Default::default()
         }],
         extensions: None,
         current_context: Some("current-context".to_string()),
+        ..Default::default()
     }
 }
 
