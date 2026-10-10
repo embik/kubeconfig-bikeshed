@@ -10,7 +10,7 @@ fn test_kbs_list_label_selector() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -24,7 +24,7 @@ fn test_kbs_list_label_selector() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -41,7 +41,7 @@ fn test_kbs_list_label_selector() {
     // namely the one matching the label.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
@@ -61,7 +61,7 @@ fn test_kbs_list_label_selector_not_equal() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -73,7 +73,7 @@ fn test_kbs_list_label_selector_not_equal() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -89,7 +89,7 @@ fn test_kbs_list_label_selector_not_equal() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -106,7 +106,7 @@ fn test_kbs_list_label_selector_not_equal() {
     // namely the one matching the label.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
@@ -121,7 +121,7 @@ fn test_kbs_list_label_selector_not_equal() {
     // are returned.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",

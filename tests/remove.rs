@@ -10,7 +10,7 @@ fn test_kbs_remove() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -21,7 +21,7 @@ fn test_kbs_remove() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -33,7 +33,7 @@ fn test_kbs_remove() {
     // both should be listed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\nlocalhost\n$").unwrap());
@@ -41,7 +41,7 @@ fn test_kbs_remove() {
     // removing one kubeconfig should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "remove",
@@ -53,7 +53,7 @@ fn test_kbs_remove() {
     // only the other kubeconfig should be listed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^localhost\n$").unwrap());
@@ -67,7 +67,7 @@ fn test_kbs_remove_by_selector() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -80,7 +80,7 @@ fn test_kbs_remove_by_selector() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -94,7 +94,7 @@ fn test_kbs_remove_by_selector() {
     // both should be listed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\nlocalhost\n$").unwrap());
@@ -102,7 +102,7 @@ fn test_kbs_remove_by_selector() {
     // removing kubeconfig by location=imagination selector should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "remove",
@@ -115,7 +115,7 @@ fn test_kbs_remove_by_selector() {
     // only the other kubeconfig should be listed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^localhost\n$").unwrap());
@@ -123,7 +123,7 @@ fn test_kbs_remove_by_selector() {
     // removing kubeconfig by owner=embik selector should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "remove",
@@ -136,7 +136,7 @@ fn test_kbs_remove_by_selector() {
     // no kubeconfig should exist anymore.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_empty());
@@ -150,7 +150,7 @@ fn test_kbs_remove_active() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -161,7 +161,7 @@ fn test_kbs_remove_active() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -173,7 +173,7 @@ fn test_kbs_remove_active() {
     // both should be listed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\nlocalhost\n$").unwrap());
@@ -181,7 +181,7 @@ fn test_kbs_remove_active() {
     // use one of them
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "use",
@@ -193,7 +193,7 @@ fn test_kbs_remove_active() {
     // removing active kubeconfig should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "remove",
@@ -205,7 +205,7 @@ fn test_kbs_remove_active() {
     // only the other kubeconfig should be listed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^localhost\n$").unwrap());

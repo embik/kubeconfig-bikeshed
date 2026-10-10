@@ -9,7 +9,7 @@ fn test_kbs_prune() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -20,14 +20,14 @@ fn test_kbs_prune() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "prune",
@@ -38,7 +38,7 @@ fn test_kbs_prune() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_empty());
@@ -51,7 +51,7 @@ fn test_kbs_prune_dry_run() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -62,21 +62,21 @@ fn test_kbs_prune_dry_run() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "prune"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "prune"])
         .assert()
         .success()
         .stderr(is_match("\'kubernetes.embik.me\' should be pruned").unwrap());
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
@@ -89,7 +89,7 @@ fn test_kbs_prune_label_selector() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -102,7 +102,7 @@ fn test_kbs_prune_label_selector() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -117,14 +117,14 @@ fn test_kbs_prune_label_selector() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.beckers.dev\nkubernetes.embik.me\n$").unwrap());
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "prune",
@@ -137,7 +137,7 @@ fn test_kbs_prune_label_selector() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.beckers.dev\n$").unwrap());

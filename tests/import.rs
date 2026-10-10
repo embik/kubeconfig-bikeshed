@@ -11,7 +11,7 @@ fn test_kbs_import() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -22,7 +22,7 @@ fn test_kbs_import() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
@@ -36,7 +36,7 @@ fn test_kbs_import_duplicate_error() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -48,7 +48,7 @@ fn test_kbs_import_duplicate_error() {
     // assert that import worked.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
@@ -56,7 +56,7 @@ fn test_kbs_import_duplicate_error() {
     // second import should fail.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -75,7 +75,7 @@ fn test_kbs_import_name_override() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -89,7 +89,7 @@ fn test_kbs_import_name_override() {
     // assert that import worked and shows up with the adequate name override.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.beckers.dev\n$").unwrap());
@@ -103,7 +103,7 @@ fn test_kbs_import_with_labels() {
     // initial import should succeed.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -117,7 +117,7 @@ fn test_kbs_import_with_labels() {
     // assert that import worked and labels show up in table view.
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
@@ -141,7 +141,7 @@ fn test_kbs_import_with_short_flag() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -153,7 +153,7 @@ fn test_kbs_import_with_short_flag() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes\n$").unwrap());
@@ -166,7 +166,7 @@ fn test_kbs_import_with_short_flag_localhost() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -178,7 +178,7 @@ fn test_kbs_import_with_short_flag_localhost() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^localhost\n$").unwrap());
@@ -191,7 +191,7 @@ fn test_kbs_import_mixed_kubeconfig() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -202,7 +202,7 @@ fn test_kbs_import_mixed_kubeconfig() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -215,7 +215,7 @@ fn test_kbs_import_mixed_kubeconfig() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
@@ -228,7 +228,7 @@ fn test_kbs_import_directory() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -239,7 +239,7 @@ fn test_kbs_import_directory() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\nlocalhost\n$").unwrap());
@@ -255,13 +255,13 @@ fn test_kbs_import_from_stdin() {
     Command::cargo_bin("kbs")
         .unwrap()
         .write_stdin(buffer)
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "import", "-"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "import", "-"])
         .assert()
         .success();
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());

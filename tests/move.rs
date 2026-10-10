@@ -9,7 +9,7 @@ fn test_kbs_move() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -20,14 +20,14 @@ fn test_kbs_move() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "move",
@@ -39,7 +39,7 @@ fn test_kbs_move() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^k8s.embik.me\n$").unwrap());
@@ -52,7 +52,7 @@ fn test_kbs_move_nonexistent() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -63,14 +63,14 @@ fn test_kbs_move_nonexistent() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "move",
@@ -88,7 +88,7 @@ fn test_kbs_move_labels() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "import",
@@ -101,14 +101,14 @@ fn test_kbs_move_labels() {
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&["-c", temp_dir.path().to_str().unwrap(), "list"])
+        .args(["-c", temp_dir.path().to_str().unwrap(), "list"])
         .assert()
         .success()
         .stdout(is_match("^kubernetes.embik.me\n$").unwrap());
 
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "move",
@@ -121,7 +121,7 @@ fn test_kbs_move_labels() {
     // make sure the labels were moved as well
     Command::cargo_bin("kbs")
         .unwrap()
-        .args(&[
+        .args([
             "-c",
             temp_dir.path().to_str().unwrap(),
             "list",
