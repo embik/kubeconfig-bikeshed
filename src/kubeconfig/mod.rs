@@ -16,7 +16,7 @@ mod tests;
 pub fn get_from_file(file: &Path) -> Result<Kubeconfig, Error> {
     let kubeconfig_file = File::open(file)?;
 
-    let kubeconfig = match serde_yaml::from_reader::<File, Kubeconfig>(kubeconfig_file) {
+    let kubeconfig = match yaml_serde::from_reader::<File, Kubeconfig>(kubeconfig_file) {
         Ok(kubeconfig) => kubeconfig,
         Err(err) => return Err(Error::YAML(err)),
     };

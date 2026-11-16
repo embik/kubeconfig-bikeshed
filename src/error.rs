@@ -7,7 +7,7 @@ pub enum Error {
     // Variants that wrap error messages from crates (either std crates
     // or external ones).
     IO(std::io::Error),
-    YAML(serde_yaml::Error),
+    YAML(yaml_serde::Error),
     JSON(serde_json::Error),
     URLParse(url::ParseError),
 }
@@ -32,8 +32,8 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<serde_yaml::Error> for Error {
-    fn from(err: serde_yaml::Error) -> Error {
+impl From<yaml_serde::Error> for Error {
+    fn from(err: yaml_serde::Error) -> Error {
         Error::YAML(err)
     }
 }

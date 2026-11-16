@@ -25,7 +25,7 @@ pub fn import(
         false => kubeconfig::get_from_file(kubeconfig_path)?,
         true => {
             let reader = BufReader::new(stdin().lock());
-            match serde_yaml::from_reader(reader) {
+            match yaml_serde::from_reader(reader) {
                 Ok(kubeconfig) => kubeconfig,
                 Err(err) => return Err(Error::YAML(err)),
             }
@@ -76,7 +76,7 @@ pub fn import(
     let file = File::create(&target_path)?;
     file.set_permissions(fs::Permissions::from_mode(0o600))?;
     let file = BufWriter::new(file);
-    serde_yaml::to_writer(file, &kubeconfig)?;
+    yaml_serde::to_writer(file, &kubeconfig)?;
 
     Ok(name)
 }
